@@ -135,8 +135,8 @@ class Gameplay():
                 else:
                     foldflag = 1
                     checkflag = 1                        
-                    self.betlog.append(tuple([self.phase, self.betidx, agent.name, betact, 0, self.blind, agent.balance, self.pot] + \
-                                             list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))
+#                    self.betlog.append(tuple([self.phase, self.betidx, agent.name, betact, 0, self.blind, agent.balance, self.pot] + \
+#                                             list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))
 
                 return checkflag, checkflag, foldflag
 
