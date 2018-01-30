@@ -125,8 +125,7 @@ class Agent():
             elif win_prob < .9:
                 if call_ratio > 1 or withdraw_ratio > 4:
                     return 'f', 0
-                elif:
-                    withdraw_ratio < 0.1
+                elif withdraw_ratio < 0.1:
                     return 'r', max(callamt, potsize * 2)
                 return 'c', 0
             else:
