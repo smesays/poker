@@ -7,6 +7,11 @@ import time
 import random
 import pickle
 
+def report_winloss(bal):
+    if bal == 0:
+        return -1
+    return 1
+
 if __name__ == "__main__":
     print " "
     print "                                                              **************************************************************"
@@ -45,7 +50,8 @@ if __name__ == "__main__":
         prompt = 0
         print "                                                                   Computer bots will play each other."
         print " "
-        agent1 = Agent("Bot 1", BUY_IN, 'conservative')
+#        agent1 = Agent("Bot 1", BUY_IN, 'conservative')
+        agent1 = Agent("Bot 1", BUY_IN, 'high_hater')
         agent2 = Agent("Bot 2", BUY_IN, 'aggressive')
     
     # structure of blinds follows https://www.cardplayer.com/poker-tournaments/2605-2009-nbc-national-heads-up-championship/18234
@@ -53,7 +59,8 @@ if __name__ == "__main__":
     gamenum = 0
     roundnum = 0
 
-    tourney_log = []    
+    tourney_log = []
+    agent_log = []
     while ((agent1.balance > 0) & (agent2.balance > 0)):
 #    while (gamenum < 13):
         gamenum += 1
@@ -63,12 +70,12 @@ if __name__ == "__main__":
         if (gamenum - 1) % game_per_round == 0: # alternatively, add each move by seconds, and next round after 30 minutes
             roundnum += 1
         blind = blind_structure[min(roundnum-1,16)]/10 # 17 rounds, after that, blind stays at 40k
-        if (gamenum/2.0 != int(gamenum/2.0)) & (agent1.balance < blind*2) |\
-           (gamenum/2.0 == int(gamenum/2.0)) & (agent1.balance < blind):
+        if (gamenum % 2 != 0) & (agent1.balance < blind*2) |\
+           (gamenum % 2 == 0) & (agent1.balance < blind):
             print '                                                           Tournament is over!', agent1.name, 'is bankrupt and', agent2.name, 'wins!'
             agent1.balance = 0
-        elif (gamenum/2.0 != int(gamenum/2.0)) & (agent2.balance < blind) |\
-             (gamenum/2.0 == int(gamenum/2.0)) & (agent2.balance < blind*2):
+        elif (gamenum % 2 != 0) & (agent2.balance < blind) |\
+             (gamenum % 2 == 0) & (agent2.balance < blind*2):
             print '                                                           Tournament is over!', agent2.name, 'is bankrupt and', agent1.name, 'wins!'
             agent2.balance = 0
         else:
@@ -93,8 +100,13 @@ if __name__ == "__main__":
     elif agent2.balance == 0:
         print '                                                           Tournament is over!', agent2.name, 'is bankrupt and', agent1.name, 'wins!'
 
+    agent_log.append((agent1.name, agent1.style, report_winloss(agent1.balance)))
+    agent_log.append((agent2.name, agent2.style, report_winloss(agent2.balance)))
+
     print '                                                                   *******************************'
     print '                                                                   ***** Thanks for playing! *****'
     print '                                                                   *******************************'
+    print ' '
+    print agent_log
     print ' '
     print tourney_log

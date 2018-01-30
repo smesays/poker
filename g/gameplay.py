@@ -1,3 +1,4 @@
+# add logic to ensure minimum raise, re-raise and bet
 # fix raise all-in and loop.
 # fix do not ask raise or check or ... when $0
 # after last all-in raise, still need to call
@@ -67,7 +68,7 @@ class Gameplay():
                                  list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))
 
 # how to figure out when to reveal hole cards to the log?
-    def raiseamt_check(self, betagent, resagent, betact, raiseamt):
+    def raiseamt_audit(self, betagent, resagent, betact, raiseamt):
 #        print 'raisechk'
 #        print betact, raiseamt
         # by changing the raise amount due to opponent's balance, we are changing the betamt/balance=1 to something smaller.
@@ -81,7 +82,7 @@ class Gameplay():
 #        print 'raisechk 3'
         return betact, raiseamt
 
-    def human_check(self, agent, callamt, betact, betamt):
+    def human_audit(self, agent, callamt, betact, betamt):
 #        print "human check"
         if betact == 'r':
 #            print "human check r"
@@ -99,6 +100,33 @@ class Gameplay():
             return '> (C)all $%d, or (F)old? Enter c, or f: ' % callamt
         return '> (C)all $%d, (R)aise, (A)ll-in $%d, or (F)old? Enter c, r, a, or f: ' % (callamt, min(betagent.balance, resagent.balance))
 
+    def opening(self, betagent, resagent, prompt):
+                        betagent_check = 0
+                        if self.prompt == prompt:
+                            print " "*self.GAME_INDENT, "%s" % self.print_action_txt(betagent)
+                            betact = raw_input('                                                                   > Chec(K), (B)et, or (A)ll-in? Enter k, b, or a: ')
+                            betact = betact.lower()
+                            betamt = 0
+                            if betact == 'b':
+                                betamt = input('                                                                   > Enter the amount to bet: ')
+                        else:
+                            betact, betamt = betagent.responds(self.pot, 0, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
+
+                        if betact == 'k':
+                            betagent_check = 1 
+                            print "    %s checks." % betagent.name
+                            self.betlog.append(tuple([self.phase, self.betidx, betagent.name, betact, betamt, self.blind, betagent.balance, self.pot] + \
+                                                     list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) ))
+                        elif betact == 'a':
+                            betact = 'r'
+                            betamt = betagent.balance
+                            betact, betamt = self.raiseamt_audit(betagent, resagent, betact, betamt)
+                            self.bets(betagent, betamt)
+                        else: 
+                            self.bets(betagent, betamt)
+
+                        return betagent_check
+
     def responding(self, betagent, resagent, prompt):
                 callamt = betagent.allbets - resagent.allbets 
                 if self.prompt == prompt: # human agent2 to respond
@@ -109,7 +137,7 @@ class Gameplay():
                     betamt = 0
                     if betact == 'r':
                         betamt = input('                                                                   > Enter the amount to raise: ')
-                    betact, betamt = self.human_check(resagent, callamt, betact, betamt)
+                    betact, betamt = self.human_audit(resagent, callamt, betact, betamt)
                 else:
 #                    print 'betting 1>2 bot respond'
                     betact, betamt = resagent.responds(self.pot, callamt, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
@@ -123,7 +151,7 @@ class Gameplay():
                     if betact == 'a':
                         betact = 'r'
                         betamt = resagent.balance - callamt
-                    betact, betamt = self.raiseamt_check(resagent, betagent, betact, betamt)
+                    betact, betamt = self.raiseamt_audit(resagent, betagent, betact, betamt)
 #                    print 'after raisechk'
                     if betact == 'c':
                         self.bets(resagent, callamt, 'c')
@@ -135,8 +163,10 @@ class Gameplay():
                 else:
                     foldflag = 1
                     checkflag = 1                        
-#                    self.betlog.append(tuple([self.phase, self.betidx, agent.name, betact, 0, self.blind, agent.balance, self.pot] + \
-#                                             list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))
+                    # when we log for the fold action, we need to include the callamt because callamt / potsize is the ratio that is meaning
+                    # to cause a player to fold
+                    self.betlog.append(tuple([self.phase, self.betidx, resagent.name, betact, callamt, self.blind, resagent.balance, self.pot] + \
+                                             list(self.log_comm_cards()) + list(self.log_hole_cards(resagent)) ))
 
                 return checkflag, checkflag, foldflag
 
@@ -144,7 +174,7 @@ class Gameplay():
         if (self.agent1.balance == 0) | (self.agent2.balance == 0):
             return
 
-        agent1_check = 0
+        agent1_check = 0 # this is just a flag to indicate that agent1's action is over
         agent2_check = 0
 
         while (agent1_check == 0) | (agent2_check == 0):
@@ -158,63 +188,12 @@ class Gameplay():
 
             else:
 #                print 'betting bal=bal'
-                if self.prompt == 0: # for now, computers are dumb, always bet min and call
-#                    print 'betting bal=bal 1'
-                    if 1 == 1: # evaluate hole cards
-                        betamt = self.blind*2
-                        self.bets(self.agent1, betamt) # amt determined by play style
-                    if 1 == 1:
-                        self.bets(self.agent2, self.agent1.allbets - self.agent2.allbets)
-                    agent1_check = agent2_check = 1
-                else:
-#                    print 'betting bal=bal 2'
-                    if agent1_check == 0: # agent 1 to act
-#                        print 'betting bal=bal 2a'
-                        if self.prompt == 1: # agent 1 is human
-                            print " "*self.GAME_INDENT, "%s" % self.print_action_txt(self.agent1)
-                            betact = raw_input('                                                                   > Chec(K), (B)et, or (A)ll-in? Enter k, b, or a: ')
-                            betact = betact.lower()
-                            if betact == 'b':
-                                betamt = input('                                                                   > Enter the amount to bet: ')
-                        else:
-#                            print 'betting 1=2 bot1 respond'
-                            betact, betamt = self.agent1.responds(self.pot, 0, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
+                if agent1_check == 0: # agent 1 to act
+                    agent1_check = self.opening(self.agent1, self.agent2, 1)
+                elif agent2_check == 0: # agent 2 to act
+                    agent2_check = self.opening(self.agent2, self.agent1, 2)
 
-                        if betact == 'k':                    
-                            agent1_check = 1
-                            print "    %s checks." % self.agent1.name
-                        elif betact == 'a':
-                            betact = 'r'
-                            betamt = self.agent1.balance
-                            betact, betamt = self.raiseamt_check(self.agent1, self.agent2, betact, betamt)
-                            self.bets(self.agent1, betamt)
-                        else:
-                            self.bets(self.agent1, betamt)
-
-                    elif agent2_check == 0: # agent 2 to act
-#                        print 'betting bal=bal 2b'
-                        if self.prompt == 2: # agent 2 is human
-                            print " "*self.GAME_INDENT, "%s" % self.print_action_txt(self.agent2)
-                            betact = raw_input('                                                                   > Chec(K), (B)et, or (A)ll-in? Enter k, b, or a: ')
-                            betact = betact.lower()
-                            if betact == 'b':
-                                betamt = input('                                                                   > Enter the amount to bet: ')
-                        else:
-#                            print 'betting 1=2 bot2 respond'
-                            betact, betamt = self.agent2.responds(self.pot, 0, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
-
-                        if betact == 'k':
-                            agent2_check = 1
-                            print "    %s checks." % self.agent2.name
-                        elif betact == 'a':
-                            betact = 'r'
-                            betamt = self.agent2.balance
-                            betact, betamt = self.raiseamt_check(self.agent2, self.agent1, betact, betamt)
-                            self.bets(self.agent2, betamt)
-                        else: 
-                            self.bets(self.agent2, betamt)
-
-    def fold_check(self):
+    def fold_audit(self):
         if (self.agent1_fold == 1) | (self.agent2_fold == 1):
             if self.agent1_fold == 1:
                 self.agent2.wins(self.pot)
@@ -248,7 +227,7 @@ class Gameplay():
             print '   ', self.agent1.name, 'gets hole cards XX XX' 
             print '   ', self.agent2.name, 'gets hole cards ***', self.agent2.hole1, self.agent2.hole2, '***'
         self.bet_phase()
-        if self.fold_check():
+        if self.fold_audit():
             return
 
         self.phase += 1
@@ -256,7 +235,7 @@ class Gameplay():
         self.flop1, self.flop2, self.flop3 = self.deck.deal3()
         print '  Flop is ***', self.flop1, self.flop2, self.flop3, '***'
         self.bet_phase()
-        if self.fold_check():
+        if self.fold_audit():
             return
 
         self.phase += 1
@@ -267,7 +246,7 @@ class Gameplay():
         else:
             print '  Turn is %s.  Community cards are: *** %s %s %s %s ***' % (self.turn, self.flop1, self.flop2, self.flop3, self.turn)
         self.bet_phase()
-        if self.fold_check():
+        if self.fold_audit():
             return
 
         self.phase += 1
@@ -278,7 +257,7 @@ class Gameplay():
         else:
             print '  River is %s. Community cards are: *** %s %s %s %s %s ***' % (self.river, self.flop1, self.flop2, self.flop3, self.turn, self.river)
         self.bet_phase()
-        if self.fold_check():
+        if self.fold_audit():
             return
 
         print " "
