@@ -47,7 +47,8 @@ class Agent():
         # response: call, raise, all-in, or fold, and the amount to raise
         win_prob = self.eval_hand(card1, card2, card3, card4, card5)
  #       print 'win_prob', win_prob
-        call_ratio = callamt * 1.0 / (potsize - callamt)
+        call_ratio     = callamt * 1.0 / (potsize - callamt)
+        withdraw_ratio = callamt * 1.0 /self.balance
  #       print 'call_ratio', call_ratio
         if self.style == 'aggressive':
             if win_prob < .51: # high card only
@@ -109,6 +110,29 @@ class Agent():
             return 'f', 0
         elif self.style == 'stupid':
             return 'c', 0 # always call
+
+        elif self.style == 'high_hater':
+
+            if callamt == 0:
+                return 'k', 0
+
+            elif win_prob <= .5011: # high card only
+                if call_ratio > 0.05:
+                    return 'f', 0
+                else:
+                    return 'c', 0
+
+            elif win_prob < .9:
+                if call_ratio > 1 or withdraw_ratio > 4:
+                    return 'f', 0
+                elif:
+                    withdraw_ratio < 0.1
+                    return 'r', max(callamt, potsize * 2)
+                return 'c', 0
+            else:
+                if call_ratio > 5:
+                    return 'c', 0
+                return 'r', min(int(potsize*5, rm.randint(0, 4)), self.balance)
 
     # to ensure betting makes sense wrt rules and agent's balance
     def responds(self, potsize, callamt, card1=None, card2=None, card3=None, card4=None, card5=None):
