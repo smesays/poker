@@ -1,3 +1,4 @@
+# add callamt / balance to not raise again
 # prob to bluff, but only a very small chance to the detriment of balance
 # each number is a random float choice
 # depending on blind/balance, shift style?
@@ -17,11 +18,6 @@ class Agent():
         self.hole1=None
         self.hole2=None
         self.style=style
-#        pkl_file = open('type_prob_dict.pkl', 'rb')
-#        self.type_prob_dict = pickle.load(pkl_file)
-#        pkl_file = open('name_prob_dict.pkl', 'rb')
-#        self.name_prob_dict = pickle.load(pkl_file)
-#        pkl_file.close()
         
     def clear_bets(self):
         self.allbets=0
@@ -36,10 +32,10 @@ class Agent():
     def eval_hand(self, card1=None, card2=None, card3=None, card4=None, card5=None):
         if card1 is None:
             if self.hole1.getSuit() == self.hole1.getSuit():
-#                print 'audit2a %.4f' % ((self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28 * 1.2)
-                return min(1, (self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28 * 1.2)
+                return min(1, (self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28 * 1.1)
+            elif self.hole1.getRank() == self.hole1.getRank():
+                return min(1, max(0.5, (self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28))
             else:
-#                print 'audit2b %.4f' % ((self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28)
                 return (self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28
         else:
             hand=Hand(self.hole1, self.hole2, card1, card2, card3, card4, card5)
@@ -55,33 +51,33 @@ class Agent():
  #       print 'call_ratio', call_ratio
         if self.style == 'aggressive':
             if win_prob < .51: # high card only
-                print 'respondbase1a'
-                if call_ratio >= 1.0:
+#                print 'respondbase1a'
+                if call_ratio > 0.75:
                     return 'f', 0
-                elif call_ratio >= 0.5: 
+                elif call_ratio > 0.5: 
                     return 'c', 0
                 elif callamt > 0:
                     return 'r', potsize - callamt
                 else:
                     return 'k', 0
             elif win_prob < .6: # one-pair
-                print 'respondbase1b'
+#                print 'respondbase1b'
                 if call_ratio > 1.5:
                     return 'f', 0
-                elif call_ratio >= 1.0:
+                elif call_ratio > 1.0:
                     return 'c', 0
                 elif callamt > 0:
                     return 'r', potsize - callamt
                 else:
                     return 'k', 0
             elif win_prob < .9: # 2-pair
-                print 'respondbase1c'
+#                print 'respondbase1c'
                 if callamt > 0:
                     return 'r', int(potsize * 1.5)
                 else:
                     return 'b', potsize
             else: # better than 2-pair
-                print 'respondbase1d'
+#                print 'respondbase1d'
                 if callamt > 0:
                     return 'a', 0
                 elif win_prob > .97:
@@ -120,9 +116,9 @@ class Agent():
 
         # if call amt is almost the entire balance, might as well go all-in
         if callamt * 1.0 / self.balance > 0.95:
-            print 'respond1'
+#            print 'respond1'
             if (betact == 'c') | (betact == 'r'):
-                print 'respond1a'
+#                print 'respond1a'
                 betact = 'r'
                 betamt = self.balance - callamt
 
@@ -130,7 +126,7 @@ class Agent():
             betact = 'c'
 
         if betamt > self.balance: # raise over balance
-            print 'respond2 bet > self balance'
+#            print 'respond2 bet > self balance'
             print betamt, self.balance
             betamt = self.balance - callamt
 

@@ -1,4 +1,4 @@
-import random 
+import numpy.random as random 
 
 class Deck():
     def __init__(self):
@@ -6,7 +6,8 @@ class Deck():
         self.deck=[]
         for i in range(1,53):
             self.deck.append(Card(i))
-        self.shuffle(random.choice([4,5,6,7,8,9,10,11,42,25,476,5,58])) # change this later to timestamp based
+#        self.shuffle(random.choice([4,5,6,7,8,9,10,11,42,25,476,5,58])) # change this later to timestamp based
+        self.shuffle(random.choice(range(10000)))
 
     def shuffle(self,seed): # shuffle the deck by providing a seed number
         random.seed(seed)
