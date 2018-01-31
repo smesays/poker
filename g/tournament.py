@@ -19,7 +19,9 @@ def yprint(): # enable printing
     sys.stdout = sys.__stdout__
 
 if __name__ == "__main__":
-    PRINT_LOG = 1
+
+    SIMULATE = 1
+#    SIMULATE = 0
     BOT_STYLE1 = None
     BOT_STYLE2 = None
     BUY_IN = 20000  # standard tournament with initial buy-in $20k
@@ -34,9 +36,13 @@ if __name__ == "__main__":
     print "                                                              **************************************************************"
     print " "
 
-    human =  raw_input("                                                                   > Is human playing? Enter y or n: ")
-    human = human.lower()
-    
+    if SIMULATE == 1: 
+        human = 'n'
+        PRINT_LOG = 0
+    else:
+        human =  raw_input("                                                                   > Is human playing? Enter y or n: ").lower()
+        PRINT_LOG = 1
+
     quick_slow = 's'
     if human == 'y':
         quick_slow = raw_input("                                                                   > (Q)uick or (S)tandard game? Enter q or s: ")
@@ -127,3 +133,16 @@ if __name__ == "__main__":
     print agent_log
     print ' '
 #    print tourney_log
+    f = open("../log/agent_log20180131.txt", "a")
+    for i in range(len(agent_log)):
+      f.write(",".join(map(lambda x: str(x), agent_log[i])))
+      f.write("\n")
+    f.close()
+
+    f = open("../log/tourney_log20180131.txt", "a")
+    for i in range(len(tourney_log)):
+        for j in range(len(tourney_log[i])):
+            f.write(",".join(map(lambda x: str(x), tourney_log[i][j])))
+            f.write("\n")
+    f.close()
+

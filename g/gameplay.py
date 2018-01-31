@@ -113,8 +113,7 @@ class Gameplay():
         betagent_check = 0
         if self.prompt == prompt:
             print " "*self.GAME_INDENT, "%s" % self.print_action_txt(betagent)
-            betact = raw_input('                                                                   > Chec(K), (B)et, or (A)ll-in? Enter k, b, or a: ')
-            betact = betact.lower()
+            betact = raw_input('                                                                   > Chec(K), (B)et, or (A)ll-in? Enter k, b, or a: ').lower()
             betamt = 0
             if betact == 'b':
                 betamt = input('                                                                   > Enter the amount to bet: ')
@@ -147,9 +146,8 @@ class Gameplay():
         if self.prompt == prompt: # human agent2 to respond
             print " "*self.GAME_INDENT, "%s" % self.print_action_txt(resagent)
             print " "*self.GAME_INDENT, "%s" % self.print_call_option_txt(resagent, betagent, callamt),
-            betact = raw_input()
+            betact = raw_input().lower()
 #            while betact != 'c' and betact != 'r' and betact != 'a' and betact != 'f'
-            betact = betact.lower()
             betamt = 0
             if betact == 'r':
                 betamt = input('                                                                   > Enter the amount to raise: ')
@@ -218,10 +216,6 @@ class Gameplay():
             if loop_cnt > 20:
                 print 'ERROR: break loop'
                 sys.exit(1)
-#try:
-#  print("stuff")
-#except:
-#  sys.exit(0)
 
     def fold_audit(self):
         if (self.agent1_fold == 1) | (self.agent2_fold == 1):
