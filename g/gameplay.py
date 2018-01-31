@@ -148,7 +148,7 @@ class Gameplay():
             print " "*self.GAME_INDENT, "%s" % self.print_action_txt(resagent)
             print " "*self.GAME_INDENT, "%s" % self.print_call_option_txt(resagent, betagent, callamt),
             betact = raw_input()
-            while betact != 'c' and betact != 'r' and betact != 'a' and betact != 'f'
+#            while betact != 'c' and betact != 'r' and betact != 'a' and betact != 'f'
             betact = betact.lower()
             betamt = 0
             if betact == 'r':
