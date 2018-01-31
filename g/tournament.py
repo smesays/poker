@@ -22,8 +22,10 @@ if __name__ == "__main__":
 
     SIMULATE = 1
 #    SIMULATE = 0
-    BOT_STYLE1 = None
-    BOT_STYLE2 = None
+    VS_BOT_STYLE = 2    # pick bot style to play against human
+#    VS_BOT_STYLE = None
+    BOT_STYLE1 = None   # pick bot style 1 for bots play 
+    BOT_STYLE2 = None   # pick bot style 2 for bots play
     BUY_IN = 20000  # standard tournament with initial buy-in $20k
     # structure of blinds follows https://www.cardplayer.com/poker-tournaments/2605-2009-nbc-national-heads-up-championship/18234
     BLIND_STRUCTURE  =[150, 200, 300, 400, 600, 1000, 1500, 2000, 3000, 4000, 5000, 8000, 10000, 15000, 20000, 30000, 40000]
@@ -57,11 +59,11 @@ if __name__ == "__main__":
             prompt = 1
             print "                                                                   %s starts first." % human_name
             agent1 = Agent(human_name, BUY_IN, '')
-            agent2 = Agent("Bot", BUY_IN)
+            agent2 = Agent("Bot", BUY_IN, VS_BOT_STYLE)
         else:
             prompt = 2
             print "                                                                   Bot starts first."
-            agent1 = Agent("Bot", BUY_IN)
+            agent1 = Agent("Bot", BUY_IN, VS_BOT_STYLE)
             agent2 = Agent(human_name, BUY_IN, '')
         time.sleep(1)
         print "                                                                   Each player starts with $%d. Let's begin!" % BUY_IN
@@ -133,16 +135,17 @@ if __name__ == "__main__":
     print agent_log
     print ' '
 #    print tourney_log
-    f = open("../log/agent_log20180131.txt", "a")
-    for i in range(len(agent_log)):
-      f.write(",".join(map(lambda x: str(x), agent_log[i])))
-      f.write("\n")
-    f.close()
-
-    f = open("../log/tourney_log20180131.txt", "a")
-    for i in range(len(tourney_log)):
-        for j in range(len(tourney_log[i])):
-            f.write(",".join(map(lambda x: str(x), tourney_log[i][j])))
+    if SIMULATE:
+        f = open("../log/agent_log20180201.txt", "a")
+        for i in range(len(agent_log)):
+            f.write(",".join(map(lambda x: str(x), agent_log[i])))
             f.write("\n")
-    f.close()
+        f.close()
+
+        f = open("../log/tourney_log20180201.txt", "a")
+        for i in range(len(tourney_log)):
+            for j in range(len(tourney_log[i])):
+                f.write(",".join(map(lambda x: str(x), tourney_log[i][j])))
+                f.write("\n")
+        f.close()
 

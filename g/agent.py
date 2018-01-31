@@ -93,6 +93,42 @@ class Agent():
     def style_conservative(self, blind, potsize, callamt, card1, card2, card3, card4, card5):
         win_prob = self.eval_hand(card1, card2, card3, card4, card5)
         call_ratio = callamt * 1.0 / (potsize - callamt)
+        bigblind_left = int((self.balance - callamt) / blind / 2)
+        call_balpct = callamt / self.balance
+
+        holerank = 0
+        if card5 is not None: # how to do this on turn?
+            comm_hand = Hand(card1, card2, card3, card4, card5)
+            hone_hand = Hand(self.hole1, card1, card2, card3, card4, card5)
+            htwo_hand = Hand(self.hole2, card1, card2, card3, card4, card5)
+            best_hand = Hand(self.hole1, self.hole2, card1, card2, card3, card4, card5)
+            if comm_hand.hand_type == best_hand.hand_type:
+                print 'holerank1 ', comm_hand.hand_type
+                holerank = 0
+                win_prob -= 0.5
+            elif comm_hand.hand_type != hone_hand.hand_type or comm_hand.hand_type != htwo_hand.hand_type:
+                print 'holerank2 ', comm_hand.hand_type, hone_hand.hand_type, htwo_hand.hand_type
+                holerank = 1
+            elif best_hand.hand_type != hone_hand.hand_type and comm_hand.hand_type != htwo_hand.hand_type:
+                print 'holerank3 ', comm_hand.hand_type, hone_hand.hand_type, htwo_hand.hand_type, best_hand.hand_type
+                holerank = 2
+                win_prob += 0.05
+                               
+        if bigblind_left < 7:
+            print 'bigblindleft', win_prob, call_balpct
+            if card1 is None and win_prob > .93:
+                return 'r', int(win_prob/(1-win_prob+0.000000001) * potsize * 1.2)
+            elif card1 is not None and win_prob > .97:
+                return 'a', 0
+            elif card1 is None and win_prob > .89 or card1 is not None and win_prob > .93:
+                return 'r', int(win_prob/(1-win_prob+0.000000001) * potsize)
+            elif call_balpct > .10:
+                return 'f', 0
+            elif callamt > 0:
+                return 'c', 0
+            else:
+                return 'k', 0
+
         if win_prob < .51: # high card only
             if call_ratio > 0.5:
                 return 'f', 0
@@ -106,9 +142,11 @@ class Agent():
                 return 'c', 0
             return 'r', potsize - callamt
         elif win_prob < .9: # 2-pair
+            print 'win_prob < .9', win_prob
             if call_ratio > 1.5:
                 return 'c', 0
-            return 'r', int(potsize * 1.5)
+            print 'win_prob < .9 r'
+            return 'r', int(win_prob/(1-win_prob+0.000000001) * potsize)
         return 'a', 0 # better than 2-pair
 
     def style_high_hater(self, potsize, callamt, card1, card2, card3, card4, card5):

@@ -1,6 +1,6 @@
 import numpy as np
 
-agent_stat_data = np.genfromtxt('../log/agent_log20180131.txt', delimiter=',')
+agent_stat_data = np.genfromtxt('../log/agent_log20180201.txt', delimiter=',')
 agent_stat_data = agent_stat_data[:,1:]
 print agent_stat_data
 
