@@ -2,9 +2,11 @@
 #execfile("card.py")
 #a.append(tuple([2, 3, ]+list(dodo())+list(dodo())+list(dodo()) ))
 
+dict={1:'a', 2:'b', 3:'d'}
+print len(dict)
 import random
-print random.choice(range(10))
-
+for i in range(10):
+    print random.choice(range(1,len(dict)+1))
 
 #hand1=Hand(Card(1),Card(14),Card(40),Card(13),Card(51))
 

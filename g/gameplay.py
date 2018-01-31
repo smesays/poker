@@ -2,21 +2,26 @@
 # fix raise all-in and loop.
 # fix do not ask raise or check or ... when $0
 # after last all-in raise, still need to call
+import sys
+
 class Gameplay():
     # when initializing, agents should be ordered so they go first alternately
     GAME_INDENT = 66    # number of spaces to indent the game messages
 
-    def __init__(self, agent1, agent2, blind, prompt):
+    def __init__(self, gamenum, agent1, agent2, blind, minchip, prompt):
         '''
         prompt determines whether we need to prompt for human response 
         prompt = 0 is for bots play
         prompt = 1 will prompt for responses from agent1, and similarly for 2
         '''
+        self.gamenum = gamenum
         self.agent1 = agent1
         self.agent1.clear_bets()
         self.agent2 = agent2
         self.agent2.clear_bets()
         self.blind = blind
+        self.minbet = blind * 2 # minimum bet is big blind
+        self.minchip = minchip # all bets should be in multiples of smallest chip denomination
         self.prompt = prompt
 
         self.pot = 0 # total amt of chips in the pot
@@ -37,9 +42,6 @@ class Gameplay():
     def to_pot(self, amt):
         self.pot += amt
         
-#    def getCurrentBet(self):
-#        return self.bet[-1][3]
-
     def log_card(self, card):
         if card is None:
             return 0, 0
@@ -64,13 +66,12 @@ class Gameplay():
         self.to_pot(amt)
         if (self.prompt != 0) & printpot == 1:
             print '  Pot has $%d' % self.pot
-        self.betlog.append(tuple([self.phase, self.betidx, agent.name, betact, amt, self.blind, agent.balance, self.pot] + \
+        self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, agent.name, agent.style, betact, amt, self.blind, agent.balance, self.pot] + \
                                  list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))
 
 # how to figure out when to reveal hole cards to the log?
     def raiseamt_audit(self, betagent, resagent, betact, raiseamt):
-#        print 'raisechk'
-#        print betact, raiseamt
+#        print 'raisechk', betact, raiseamt
         # by changing the raise amount due to opponent's balance, we are changing the betamt/balance=1 to something smaller.
         # might influence the NN model?
         if resagent.balance == 0:
@@ -81,14 +82,22 @@ class Gameplay():
             return betact, resagent.balance
 #        print 'raisechk 3'
         return betact, raiseamt
-
-    def human_audit(self, agent, callamt, betact, betamt):
-#        print "human check"
-        if betact == 'r':
-#            print "human check r"
-            if agent.balance == callamt:
-                print " "*self.GAME_INDENT, "%s, you can only call going all-in." % (agent.name)
+    
+    def res_audit(self, resagent, callamt, resact, resamt):
+#        print "res audit"
+        if resact == 'r' or resact == 'a':
+#            print "res audit bef", resact, resamt
+            if resagent.balance == callamt:
+                print " "*self.GAME_INDENT, "%s, you can't raise, only call by going all-in." % (resagent.name)
                 return 'c', 0
+        return resact, resamt
+
+    def bet_audit(self, betagent, betact, betamt, resagent):
+        if betact == 'b' or betact == 'r':
+#            print 'bet audit bef', betact, betamt
+            if betamt > resagent.balance: # cannot bet more than opponent's balance
+                betamt = resagent.balance
+#            print 'bet audit aft', betact, betamt
         return betact, betamt
             
     def print_action_txt(self, agent):
@@ -100,75 +109,86 @@ class Gameplay():
             return '> (C)all $%d, or (F)old? Enter c, or f: ' % callamt
         return '> (C)all $%d, (R)aise, (A)ll-in $%d, or (F)old? Enter c, r, a, or f: ' % (callamt, min(betagent.balance, resagent.balance))
 
-    def opening(self, betagent, resagent, prompt):
-                        betagent_check = 0
-                        if self.prompt == prompt:
-                            print " "*self.GAME_INDENT, "%s" % self.print_action_txt(betagent)
-                            betact = raw_input('                                                                   > Chec(K), (B)et, or (A)ll-in? Enter k, b, or a: ')
-                            betact = betact.lower()
-                            betamt = 0
-                            if betact == 'b':
-                                betamt = input('                                                                   > Enter the amount to bet: ')
-                        else:
-                            betact, betamt = betagent.responds(self.pot, 0, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
+    def opening(self, betagent, resagent, prompt): # opening with betting or checking
+        betagent_check = 0
+        if self.prompt == prompt:
+            print " "*self.GAME_INDENT, "%s" % self.print_action_txt(betagent)
+            betact = raw_input('                                                                   > Chec(K), (B)et, or (A)ll-in? Enter k, b, or a: ')
+            betact = betact.lower()
+            betamt = 0
+            if betact == 'b':
+                betamt = input('                                                                   > Enter the amount to bet: ')
+        else:
+            betact, betamt = betagent.responds(self.blind, self.pot, 0, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
+#        print 'opening ', betact, betamt
+        betact, betamt = self.bet_audit(betagent, betact, betamt, resagent)
+#        print 'after betaudit ', betact, betamt
 
-                        if betact == 'k':
-                            betagent_check = 1 
-                            print "    %s checks." % betagent.name
-                            self.betlog.append(tuple([self.phase, self.betidx, betagent.name, betact, betamt, self.blind, betagent.balance, self.pot] + \
-                                                     list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) ))
-                        elif betact == 'a':
-                            betact = 'r'
-                            betamt = betagent.balance
-                            betact, betamt = self.raiseamt_audit(betagent, resagent, betact, betamt)
-                            self.bets(betagent, betamt)
-                        else: 
-                            self.bets(betagent, betamt)
+        if betact == 'k':
+            betagent_check = 1 
+            print "    %s checks." % betagent.name
+            self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, betagent.name, betagent.style, betact, betamt, self.blind, betagent.balance, self.pot] + \
+                                     list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) ))
+        elif betact == 'a':
+# logic here is a bit of a mess because of using the same agent.responds .... see if can tighten it up
+            betact = 'r'
+            betamt = betagent.balance
+#            print 'before raiseamt audit', betact, betamt
+            betact, betamt = self.raiseamt_audit(betagent, resagent, betact, betamt)
+#            print 'after raiseamt audit', betact, betamt
+            self.bets(betagent, betamt)
+        else: 
+            self.bets(betagent, betamt)
 
-                        return betagent_check
+        return betagent_check
 
-    def responding(self, betagent, resagent, prompt):
-                callamt = betagent.allbets - resagent.allbets 
-                if self.prompt == prompt: # human agent2 to respond
-                    print " "*self.GAME_INDENT, "%s" % self.print_action_txt(resagent)
-                    print " "*self.GAME_INDENT, "%s" % self.print_call_option_txt(resagent, betagent, callamt),
-                    betact = raw_input()
-                    betact = betact.lower()
-                    betamt = 0
-                    if betact == 'r':
-                        betamt = input('                                                                   > Enter the amount to raise: ')
-                    betact, betamt = self.human_audit(resagent, callamt, betact, betamt)
-                else:
-#                    print 'betting 1>2 bot respond'
-                    betact, betamt = resagent.responds(self.pot, callamt, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
+    def responding(self, betagent, resagent, prompt): # responding to a bet
+        callamt = betagent.allbets - resagent.allbets 
+        if self.prompt == prompt: # human agent2 to respond
+            print " "*self.GAME_INDENT, "%s" % self.print_action_txt(resagent)
+            print " "*self.GAME_INDENT, "%s" % self.print_call_option_txt(resagent, betagent, callamt),
+            betact = raw_input()
+            while betact != 'c' and betact != 'r' and betact != 'a' and betact != 'f'
+            betact = betact.lower()
+            betamt = 0
+            if betact == 'r':
+                betamt = input('                                                                   > Enter the amount to raise: ')
+        else:
+#            print 'betting 1 ne 2 bot respond'
+            betact, betamt = resagent.responds(self.blind, self.pot, callamt, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
+            if betamt < 0:
+                print 'what is this1?'
+                resagent.balance = 0
+#            print betact, betamt
+        betact, betamt = self.res_audit(resagent, callamt, betact, betamt)
 
-                foldflag = 0
-                if betact == 'c':
-                    self.bets(resagent, callamt, 'c')
-                    checkflag = 1
-                elif (betact == 'r') | (betact == 'a'):
-#                    print 'betting 1>2 r or a'
-                    if betact == 'a':
-                        betact = 'r'
-                        betamt = resagent.balance - callamt
-                    betact, betamt = self.raiseamt_audit(resagent, betagent, betact, betamt)
-#                    print 'after raisechk'
-                    if betact == 'c':
-                        self.bets(resagent, callamt, 'c')
-                        checkflag = 1
-                    else:
-                        self.bets(resagent, callamt, 'c', printpot=0)
-                        self.bets(resagent, betamt, 'r')
-                        checkflag = 0
-                else:
-                    foldflag = 1
-                    checkflag = 1                        
-                    # when we log for the fold action, we need to include the callamt because callamt / potsize is the ratio that is meaning
-                    # to cause a player to fold
-                    self.betlog.append(tuple([self.phase, self.betidx, resagent.name, betact, callamt, self.blind, resagent.balance, self.pot] + \
-                                             list(self.log_comm_cards()) + list(self.log_hole_cards(resagent)) ))
+        foldflag = 0
+        if betact == 'c':
+            self.bets(resagent, callamt, 'c')
+            checkflag = 1
+        elif (betact == 'r') | (betact == 'a'):
+#            print 'betting 1 ne 2 r or a'
+            if betact == 'a':
+                betact = 'r'
+                betamt = resagent.balance - callamt
+            betact, betamt = self.raiseamt_audit(resagent, betagent, betact, betamt)
+#            print 'after raisechk'
+            if betact == 'c':
+                self.bets(resagent, callamt, 'c')
+                checkflag = 1
+            else:
+                self.bets(resagent, callamt, 'c', printpot=0)
+                self.bets(resagent, betamt, 'r')
+                checkflag = 0
+        else:
+            foldflag = 1
+            checkflag = 1                        
+            # when we log for the fold action, we need to include the callamt because callamt / potsize is the ratio that is meaning
+            # to cause a player to fold
+            self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, resagent.name, resagent.style, betact, callamt, self.blind, resagent.balance, self.pot] + \
+                                     list(self.log_comm_cards()) + list(self.log_hole_cards(resagent)) ))
 
-                return checkflag, checkflag, foldflag
+        return checkflag, checkflag, foldflag
 
     def bet_phase(self): # last round bet should be all in and not leave amt smaller than next blind!
         if (self.agent1.balance == 0) | (self.agent2.balance == 0):
@@ -176,8 +196,10 @@ class Gameplay():
 
         agent1_check = 0 # this is just a flag to indicate that agent1's action is over
         agent2_check = 0
+        loop_cnt = 0 # prevent infinite loop
 
         while (agent1_check == 0) | (agent2_check == 0):
+            loop_cnt += 1
             if self.agent1.allbets > self.agent2.allbets: # agent2 to respond
 #                print 'betting 1>2'
                 agent1_check, agent2_check, self.agent2_fold = self.responding(self.agent1, self.agent2, 2)
@@ -192,6 +214,14 @@ class Gameplay():
                     agent1_check = self.opening(self.agent1, self.agent2, 1)
                 elif agent2_check == 0: # agent 2 to act
                     agent2_check = self.opening(self.agent2, self.agent1, 2)
+
+            if loop_cnt > 20:
+                print 'ERROR: break loop'
+                sys.exit(1)
+#try:
+#  print("stuff")
+#except:
+#  sys.exit(0)
 
     def fold_audit(self):
         if (self.agent1_fold == 1) | (self.agent2_fold == 1):

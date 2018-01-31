@@ -5,19 +5,26 @@
 # bet amt also random around algo number
 # design stupid bot as baseline and compare smarter bots to stupid 
 import pickle
+import random
+
 class Agent():
+    BOT_STYLE_MAP = {1:'aggressive', 2:'conservative', 3:'high_hater'}
+
     # load dictionary to be used for all agents
     pkl_file = open('type_prob_dict.pkl', 'rb')
     type_prob_dict = pickle.load(pkl_file)
     pkl_file.close()
 
-    def __init__(self, name, buy_in, style):
+    def __init__(self, name, buy_in, style=None):
         self.name=name
         self.balance=buy_in
         self.allbets=0
         self.hole1=None
         self.hole2=None
-        self.style=style
+        if style is None:
+            self.style=random.choice( range(1, len(self.BOT_STYLE_MAP)+1) )
+        else:
+            self.style=style
         
     def clear_bets(self):
         self.allbets=0
@@ -42,115 +49,145 @@ class Agent():
 #            print 'audit2c ', hand.hand_type
 #            print 'audit2c ', self.type_prob_dict[hand.hand_type]
             return self.type_prob_dict[hand.hand_type]
-                            
-    def responds_base(self, potsize, callamt, card1=None, card2=None, card3=None, card4=None, card5=None):
-        # response: call, raise, all-in, or fold, and the amount to raise
+
+    def style_aggressive(self, potsize, callamt, card1, card2, card3, card4, card5):
         win_prob = self.eval_hand(card1, card2, card3, card4, card5)
- #       print 'win_prob', win_prob
-        call_ratio     = callamt * 1.0 / (potsize - callamt)
-        withdraw_ratio = callamt * 1.0 /self.balance
- #       print 'call_ratio', call_ratio
-        if self.style == 'aggressive':
-            if win_prob < .51: # high card only
-#                print 'respondbase1a'
-                if call_ratio > 0.75:
-                    return 'f', 0
-                elif call_ratio > 0.5: 
-                    return 'c', 0
-                elif callamt > 0:
-                    return 'r', potsize - callamt
-                else:
-                    return 'k', 0
-            elif win_prob < .6: # one-pair
-#                print 'respondbase1b'
-                if call_ratio > 1.5:
-                    return 'f', 0
-                elif call_ratio > 1.0:
-                    return 'c', 0
-                elif callamt > 0:
-                    return 'r', potsize - callamt
-                else:
-                    return 'k', 0
-            elif win_prob < .9: # 2-pair
-#                print 'respondbase1c'
-                if callamt > 0:
-                    return 'r', int(potsize * 1.5)
-                else:
-                    return 'b', potsize
-            else: # better than 2-pair
-#                print 'respondbase1d'
-                if callamt > 0:
-                    return 'a', 0
-                elif win_prob > .97:
-                    return 'a', 0
-                elif win_prob > .94:
-                    return 'b', int(potsize * 3)
-                else:
-                    return 'b', int(potsize * 2)
-        elif self.style == 'conservative':
-            if win_prob < .51: # high card only
-                if call_ratio > 0.5:
-                    return 'f', 0
-                elif call_ratio >= 0.3:
-                    return 'c', 0
-                return 'r', potsize - callamt
-            elif win_prob < .6: # one-pair
-                if call_ratio > 1:
-                    return 'f', 0
-                elif call_ratio >= 0.8:
-                    return 'c', 0
-                return 'r', potsize - callamt
-            elif win_prob < .9: # 2-pair
-                if call_ratio > 1.5:
-                    return 'c', 0
-                return 'r', int(potsize * 1.5)
-            # better than 2-pair
-            return 'a', 0            
-        elif self.style == 'defensive':
-            return 'f', 0
-        elif self.style == 'stupid':
-            return 'c', 0 # always call
-
-        elif self.style == 'high_hater':
-
-            if callamt == 0:
-                return 'k', 0
-
-            elif win_prob <= .5011: # high card only
-                if call_ratio > 0.05:
-                    return 'f', 0
-                else:
-                    return 'c', 0
-
-            elif win_prob < .9:
-                if call_ratio > 1 or withdraw_ratio > 4:
-                    return 'f', 0
-                elif withdraw_ratio < 0.1:
-                    return 'r', max(callamt, potsize * 2)
+        call_ratio = callamt * 1.0 / (potsize - callamt)
+        if win_prob < .51: # high card only
+            if call_ratio > 0.75:
+                return 'f', 0
+            elif call_ratio > 0.5: 
                 return 'c', 0
+            elif callamt > 0:
+                return 'r', potsize - callamt
             else:
-                if call_ratio > 5:
-                    return 'c', 0
-                return 'r', min(int(potsize*5, rm.randint(0, 4)), self.balance)
+                return 'k', 0
+        elif win_prob < .6: # one-pair
+            if call_ratio > 1.2:
+                return 'f', 0
+            elif call_ratio > 1.0:
+                return 'c', 0
+            elif callamt > 0:
+                return 'r', potsize - callamt
+            else:
+                return 'k', 0
+        elif win_prob < .9: # 2-pair
+            if call_ratio > 2:
+                return 'f', 0
+            elif call_ratio > 0.75:
+                return 'c', 0
+            elif callamt > 0:
+                return 'r', int(potsize * 1.5)
+            else:
+                return 'b', potsize
+        else: # better than 2-pair
+            if callamt > 0:
+                return 'a', 0
+            elif win_prob > .97:
+                return 'a', 0
+            elif win_prob > .94:
+                return 'b', int(potsize * 3)
+            else:            
+                return 'b', int(potsize * 2)
 
-    # to ensure betting makes sense wrt rules and agent's balance
-    def responds(self, potsize, callamt, card1=None, card2=None, card3=None, card4=None, card5=None):
-        betact, betamt = self.responds_base(potsize, callamt, card1, card2, card3, card4, card5)
+    def style_conservative(self, blind, potsize, callamt, card1, card2, card3, card4, card5):
+        win_prob = self.eval_hand(card1, card2, card3, card4, card5)
+        call_ratio = callamt * 1.0 / (potsize - callamt)
+        if win_prob < .51: # high card only
+            if call_ratio > 0.5:
+                return 'f', 0
+            elif call_ratio >= 0.3:
+                return 'c', 0
+            return 'r', potsize - callamt
+        elif win_prob < .6: # one-pair
+            if call_ratio > 1:
+                return 'f', 0
+            elif call_ratio >= 0.8:
+                return 'c', 0
+            return 'r', potsize - callamt
+        elif win_prob < .9: # 2-pair
+            if call_ratio > 1.5:
+                return 'c', 0
+            return 'r', int(potsize * 1.5)
+        return 'a', 0 # better than 2-pair
 
+    def style_high_hater(self, potsize, callamt, card1, card2, card3, card4, card5):
+        win_prob = self.eval_hand(card1, card2, card3, card4, card5)
+        call_ratio     = callamt * 1.0 / (potsize - callamt)
+        withdraw_ratio = callamt * 1.0 / self.balance
+        if callamt == 0:
+            return 'k', 0
+
+        elif win_prob <= .5011: # high card only
+            if call_ratio > 0.05:
+                return 'f', 0
+            else:
+                return 'c', 0
+
+        elif win_prob < .9:
+            if call_ratio > 1 or withdraw_ratio > 4:
+                return 'f', 0
+            elif withdraw_ratio < 0.1:
+#                print 'highhater r1', callamt
+#                print 'highhater r1', max(callamt, potsize * 2)                 
+                return 'r', max(callamt, potsize * 2)
+            return 'c', 0
+        else:
+            if call_ratio > 5:
+                return 'c', 0
+#            print 'highhater r2', int(random.uniform(0,0.4)*self.balance)
+            return 'r', min(potsize*5, int(random.uniform(0,0.4)*self.balance))
+
+    def round_up_all_in(self, callamt, betact, betamt, pct_left):                            
         # if call amt is almost the entire balance, might as well go all-in
-        if callamt * 1.0 / self.balance > 0.95:
+        if callamt * 1.0 / self.balance > (1-pct_left):
 #            print 'respond1'
             if (betact == 'c') | (betact == 'r'):
-#                print 'respond1a'
+#                print 'respond1a bef', betact, betamt
                 betact = 'r'
                 betamt = self.balance - callamt
+#                print 'respond1a aft', betact, betamt
+        elif betamt * 1.0 / self.balance > (1-pct_left):
+#            print 'respond2'
+            if betact == 'r':
+#                print 'respond2a bef', betact, betamt
+                betamt = self.balance
+#                print 'respond2a aft', betact, betamt
+        return betact, betamt
+
+    def responds_base(self, blind, potsize, callamt, card1=None, card2=None, card3=None, card4=None, card5=None):
+        # response: call, raise, all-in, or fold, and the amount to raise
+        if self.BOT_STYLE_MAP[self.style] == 'aggressive':
+            betact, betamt = self.style_aggressive(potsize, callamt, card1, card2, card3, card4, card5)
+            betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.05)
+
+        elif self.BOT_STYLE_MAP[self.style] == 'conservative':
+            betact, betamt = self.style_conservative(blind, potsize, callamt, card1, card2, card3, card4, card5)
+            betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.02)
+
+        elif self.BOT_STYLE_MAP[self.style] == 'defensive':
+            betact = 'f'
+            betamt = 0
+
+        elif self.BOT_STYLE_MAP[self.style] == 'stupid': # always call
+            betact = 'c'
+            betamt = 0 
+
+        elif self.BOT_STYLE_MAP[self.style] == 'high_hater':
+            betact, betamt = self.style_high_hater(potsize, callamt, card1, card2, card3, card4, card5)
+
+        return betact, betamt
+
+    # to ensure betting makes sense wrt rules and agent's balance
+    def responds(self, blind, potsize, callamt, card1=None, card2=None, card3=None, card4=None, card5=None):
+        betact, betamt = self.responds_base(blind, potsize, callamt, card1, card2, card3, card4, card5)
 
         if (betact == 'r') & (betamt == 0):
             betact = 'c'
 
         if betamt > self.balance: # raise over balance
 #            print 'respond2 bet > self balance'
-            print betamt, self.balance
+            print betamt, self.balance, callamt
             betamt = self.balance - callamt
 
         return betact, betamt
