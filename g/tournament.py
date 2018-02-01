@@ -160,5 +160,5 @@ def tournament():
 
 
 if __name__ == "__main__":
-    for _ in range(200):
+    for _ in range(1000):
         tournament()
