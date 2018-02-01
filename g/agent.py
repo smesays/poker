@@ -9,7 +9,7 @@ import random
 import numpy as np
 
 class Agent():
-    BOT_STYLE_MAP = {1:'aggressive', 2:'conservative', 3:'high_hater', 4:'random'} #, 5:'all-in'}
+    BOT_STYLE_MAP = {1:'aggressive', 2:'conservative', 3:'high_hater', 4:'random', 5:'all-in', 6:'multi-style'}
 
     # load dictionary to be used for all agents
     pkl_file = open('type_prob_dict.pkl', 'rb')
@@ -204,8 +204,21 @@ class Agent():
                 betamt = max( random.uniform(0.05,0.5), min(0.8,int(np.random.normal(0.05,0.2))) )*self.balance
         return betact, int(betamt)
 
-    def style_all_in(self, potsize, callamt, card1, card2, card3, card4, card5):
-        pass
+    def style_all_in(self, blind, potsize, callamt, card1, card2, card3, card4, card5):
+        print 'style all-in'
+        rand = random.uniform(0,1)
+        call_ratio = callamt * 1.0 / (potsize - callamt)
+        bigblind_left = int((self.balance - callamt) / blind / 2)
+        betact, betamt = self.style_conservative(blind, potsize, callamt, card1, card2, card3, card4, card5)
+        if bigblind_left < 5 and rand < .8 or \
+           betact == 'b' and rand < 0.2 or \
+           betact == 'r' and rand < 0.4 or \
+           betact == 'c' and call_ratio < 1.51 and rand < 0.65 or \
+           betact == 'k' and rand < 0.1: 
+            print 'style all-in change to a'
+            betact = 'a'
+            betamt = 0
+        return betact, betamt
 
     def round_up_all_in(self, callamt, betact, betamt, pct_left):                            
         # if call amt is almost the entire balance, might as well go all-in
@@ -224,30 +237,39 @@ class Agent():
 #                print 'respond2a aft', betact, betamt
         return betact, betamt
 
-    def responds_base(self, blind, potsize, callamt, card1=None, card2=None, card3=None, card4=None, card5=None):
+    def responds_base(self, blind, potsize, callamt, card1=None, card2=None, card3=None, card4=None, card5=None, style=None):
+        if style is None:
+            style = self.style
+
         # response: call, raise, all-in, or fold, and the amount to raise
-        if self.BOT_STYLE_MAP[self.style] == 'aggressive':
+        if self.BOT_STYLE_MAP[style] == 'aggressive':
             betact, betamt = self.style_aggressive(potsize, callamt, card1, card2, card3, card4, card5)
             betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.05)
 
-        elif self.BOT_STYLE_MAP[self.style] == 'conservative':
+        elif self.BOT_STYLE_MAP[style] == 'conservative':
             betact, betamt = self.style_conservative(blind, potsize, callamt, card1, card2, card3, card4, card5)
             betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.02)
 
-        elif self.BOT_STYLE_MAP[self.style] == 'high_hater':
+        elif self.BOT_STYLE_MAP[style] == 'high_hater':
             betact, betamt = self.style_high_hater(potsize, callamt, card1, card2, card3, card4, card5)
 
-        elif self.BOT_STYLE_MAP[self.style] == 'random':
+        elif self.BOT_STYLE_MAP[style] == 'random':
             betact, betamt = self.style_random(potsize, callamt)
 
-#        elif self.BOT_STYLE_MAP[self.style] == 'all-in':
-#            betact, betamt = self.style_all_in(potsize, callamt, card1, card2, card3, card4, card5)
+        elif self.BOT_STYLE_MAP[self.style] == 'all-in':
+            print 'responds base all-in'
+            betact, betamt = self.style_all_in(blind, potsize, callamt, card1, card2, card3, card4, card5)
+            print 'responds base all-in', betact, betamt
         
-        elif self.BOT_STYLE_MAP[self.style] == 'defensive':
-            betact = 'f'
-            betamt = 0
+        elif self.BOT_STYLE_MAP[style] == 'multi-style':
+#            randstyle = random.choice(range(len(self.BOT_STYLE_MAP)))+1
+# not sure why this fails with style 5
+            randstyle = random.choice([1,2,3,4]) 
+            print 'randomly selected style', randstyle
+            betact, betamt = self.responds_base(blind, potsize, callamt, card1, card2, card3, card4, card5, randstyle)
+            print 'randomly selected style', randstyle, betact, betamt
 
-        elif self.BOT_STYLE_MAP[self.style] == 'stupid': # always call
+        elif self.BOT_STYLE_MAP[style] == 'stupid': # always call
             betact = 'c'
             betamt = 0 
 

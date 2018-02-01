@@ -18,10 +18,10 @@ def nprint(): # disable printing
 def yprint(): # enable printing
     sys.stdout = sys.__stdout__
 
-#if __name__ == "__main__":
-def tournament():
-    SIMULATE = 1
-#    SIMULATE = 0
+if __name__ == "__main__":
+
+#    SIMULATE = 1
+    SIMULATE = 0
     VS_BOT_STYLE = 6    # pick bot style to play against human, or None
     BOT_STYLE1 = None   # pick bot style 1 for bots play, or None
     BOT_STYLE2 = None   # pick bot style 2 for bots play, or None
@@ -40,7 +40,6 @@ def tournament():
     if SIMULATE == 1: 
         human = 'n'
         PRINT_LOG = 0
-#        PRINT_LOG = 1
     else:
         human =  raw_input("                                                                   > Is human playing? Enter y or n: ").lower()
         PRINT_LOG = 1
@@ -158,7 +157,3 @@ def tournament():
                 f.write("\n")
         f.close()
 
-
-if __name__ == "__main__":
-    for _ in range(200):
-        tournament()
