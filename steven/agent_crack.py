@@ -10,83 +10,235 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 # Global Parameters:
-BATCH_SIZE = 512
+BATCH_SIZE = 256
 IS_CUDA    = False
 LR         = 0.01
 MOMENTUM   = 1e-6
-EPOCHS      = 100
-LOG_IN     = 50
-
+EPOCHS      = 50
+LOG_IN     = 100
 # Load Dataset
-def load_dataset(path):
+def load_dataset(path, mask):
     
-    # PLace to load the informaton we have
-#    features = np.loadtxt(txt_filepath)
-#    num_features = np.shape(features)[1]
-#    target = features[:,-1]
-#    data = features[:, range(num_features -1)]
-
-    # If anything needs to be subtracted
-    # data[:,i] = np.subtract(data[:,i], data[:,j])
-    # data[:,i] = np.subtract(data[:,i], data[:,j])
-    # data[:,i] = np.subtract(data[:,i], data[:,j])
+    # Type 0:
+    # Attributes: gamenum, phase, betidx, name, style, betact, amt, blind, balance, pot]+ list(comm_cards + list(hole_cards)
+    #             (0),     (1),   (2),    (3),  (4),   (5),    (6), (7),   (8),     (9),  (10) - (23)   
     
-    data = []
-    target = []
-    for _ in range(1000):
-        for i in range(1, 7):
-            data.append(np.random.randint(low = 100*(i), high = 100*(i+1)*1, size=20))
-            target.append(i-1)
-    return np.array(data), np.array(target)
+    # Type 1:
+    # Attributes: gamenum, phase, betidx, name, style, betact, amt, blind, balance, pot, prob
+    #             (0),     (1),   (2),    (3),  (4),   (5),    (6), (7),   (8),     (9),(10)
+    
+    data_mask = [[1, 2] + range(6, 24), [1, 2] + range(6, 11)] 
+    target_mask = 4
 
-# Global objects:
+    data = np.genfromtxt(path, delimiter = ',', usecols = data_mask[mask])
+    act = np.genfromtxt(path, delimiter = ',', usecols = 5, dtype = str)
+    target = np.genfromtxt(path, delimiter = ',', usecols = target_mask, dtype = np.int)
+
+    act_map = {'f':0, 'c':1, 'k':1, 'b':2, 'r':2}
+    for i in range(len(act)):
+        act[i] = act_map[act[i]]
+    data = np.insert(data, 0, act, axis = 1)
+    
+    # Delete pre-flop
+    del_pf_mask = [i for i in range(len(data)) if data[i, 1] == 0]
+    data = np.delete(data, del_pf_mask, 0) 
+    target = np.delete(target, del_pf_mask, 0) 
+    
+    # Adjust non-fold balance
+    # If anything needs to be added or subtracted
+    nf_mask = [i for i in range(len(data)) if data[i, 0] != 0]
+    data[nf_mask,5]  = np.add(data[nf_mask,5], data[nf_mask,3])
+    data[nf_mask,5]  = np.divide(data[nf_mask,3], data[nf_mask,5])
+    data[nf_mask,6] = np.subtract(data[nf_mask,6], data[nf_mask,3])
+    data[nf_mask,6] = np.divide(data[nf_mask,3], data[nf_mask,6])
+    data[:,3] = np.divide(data[:,3], data[:,4])
+    target = np.subtract(target, 1)
+    
+    mask1 = [i for i in range(len(target)) if target[i] == 0]
+    mask2 = [i for i in range(len(target)) if target[i] == 1]
+    mask3 = [i for i in range(len(target)) if target[i] == 2]
+    mask4 = [i for i in range(len(target)) if target[i] == 3]
+    rand.shuffle(mask1)
+    rand.shuffle(mask2)
+    rand.shuffle(mask3)
+    rand.shuffle(mask4)
+    
+    min_to_take = min(len(mask1), len(mask2), len(mask3), len(mask4))
+    print(min_to_take)
+    total_mask = mask1[0:min_to_take] + mask2[0:min_to_take] + mask3[0:min_to_take] + mask4[0:min_to_take]
+    
+    data = data[total_mask, :]
+    target = target[total_mask]
+    
+    print(np.shape(data), np.shape(target))
+    # Type 0:
+    # Selcted attributes: betact, phase, betidx, blind-r, blind, bal-r,   pot-r + list(comm_cards + list(hole_cards)
+    #                     (0),    (1),   (2),    (3),     (4),   (5),     (6),    (7) - (20)
+    
+    # Type 1:
+    # Selcted attributes: betact, phase, betidx, blind-r, blind, bal-r,   pot-r + prob
+    #                     (0),    (1),   (2),    (3),     (4),   (5),     (6),    (7)
+    return data, target    
+
+# Global Parameters:
 class PokerDataset(Dataset):
 
-    def __init__(self, txt_filepath):
-        self.data, self.target = load_dataset(txt_filepath)
-        print(np.shape(self.data))
+    def __init__(self, txt_filepath, mask):
+        self.data, self.target = load_dataset(txt_filepath, mask)
     def __getitem__(self, index):
         return self.data[index,:], self.target[index] 
     def __len__(self):
         return self.data.shape[0]
 
-# Network Architecture:
-class BlueNet_all(nn.Module):
+train_set0 = PokerDataset('./log/tourney_log20180201.txt', mask = 0)
+#train_set2 = PokerDataset('./log/tourney2_log20180201.txt', mask = 1)
+train_loader0 = DataLoader(train_set1, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+#train_loader2 = DataLoader(train_set2, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+
+# Network Architecture of different configuration:
+
+class BlueNet_all7a(nn.Module):
 
     def __init__(self):
-        super(BlueNet_all, self).__init__()
-        self.layer1 = nn.Linear(20, 40)
-        self.layer2 = nn.Linear(40, 120)
-        self.layer3 = nn.Linear(120, 60)
-        self.layer4 = nn.Linear(60, 30)
-        self.layer5 = nn.Linear(30, 6)
+        super(BlueNet_all7a, self).__init__()
+        self.l1 = nn.Linear(21, 40)
+        self.l2 = nn.Linear(40, 120)
+        self.l3 = nn.Linear(120, 480)
+        self.l4 = nn.Linear(480, 120)
+        self.l5 = nn.Linear(120, 40)
+        self.l6 = nn.Linear(40, 20)
+        self.l7 = nn.Linear(20, 6)
 
         self.relu = nn.ReLU()
-        self.softplus = nn.Softplus()
+        self.softmax = nn.Softmax()
 
     def forward(self, x):
-        fc1 = F.relu(self.layer2(self.relu((self.layer1(x)))))
-        out_x = self.layer5(self.relu(self.layer4(self.relu((self.layer3(fc1))))))
+        fc1 = self.relu(self.l3(self.relu(self.l2(self.relu(self.l1(x))))))
+        out_x = self.softmax(self.l7(self.relu(self.l6(self.relu(self.l5(self.relu(self.l4(fc1))))))))
         return out_x
 
-train_set = PokerDataset(0)
-train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+class BlueNet_all7b(nn.Module):
 
-model = BlueNet_all()
-if IS_CUDA:
-    model.cuda()
+    def __init__(self):
+        super(BlueNet_all7b, self).__init__()
+        self.l1 = nn.Linear(21, 80)
+        self.l2 = nn.Linear(80, 240)
+        self.l3 = nn.Linear(240, 480)
+        self.l4 = nn.Linear(480, 240)
+        self.l5 = nn.Linear(240, 80)
+        self.l6 = nn.Linear(80, 20)
+        self.l7 = nn.Linear(20, 6)
 
-optimizer = optim.Adam(model.parameters(), lr=LR)
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax()
 
-# Use MSE as Reconstrcution Loss
-criterion = nn.CrossEntropyLoss()
+    def forward(self, x):
+        fc1 = self.relu(self.l3(self.relu(self.l2(self.relu(self.l1(x))))))
+        out_x = self.softmax(self.l7(self.relu(self.l6(self.relu(self.l5(self.relu(self.l4(fc1))))))))
+        return out_x
+    
+class BlueNet_all5a(nn.Module):
+
+    def __init__(self):
+        super(BlueNet_all5a, self).__init__()
+        self.l1 = nn.Linear(21, 40)
+        self.l2 = nn.Linear(40, 120)
+        self.l3 = nn.Linear(120, 40)
+        self.l4 = nn.Linear(40, 20)
+        self.l5 = nn.Linear(20, 6)
+
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax()
+
+    def forward(self, x):
+        fc1 = F.relu(self.l2(self.relu((self.l1(x)))))
+        out_x = self.softmax(self.l5(self.relu(self.l4(self.relu((self.l3(fc1)))))))
+        return out_x
+
+class BlueNet_all5b(nn.Module):
+
+    def __init__(self):
+        super(BlueNet_all5b, self).__init__()
+        self.l1 = nn.Linear(21, 60)
+        self.l2 = nn.Linear(60, 120)
+        self.l3 = nn.Linear(120, 60)
+        self.l4 = nn.Linear(60, 20)
+        self.l5 = nn.Linear(20, 6)
+
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax()
+
+    def forward(self, x):
+        fc1 = F.relu(self.l2(self.relu((self.l1(x)))))
+        out_x = self.softmax(self.l5(self.relu(self.l4(self.relu((self.l3(fc1)))))))
+        return out_x
+    
+class BlueNet_all3a(nn.Module):
+
+    def __init__(self):
+        super(BlueNet_all3a, self).__init__()
+        self.l1 = nn.Linear(21, 40)
+        self.l2 = nn.Linear(40, 10)
+        self.l3 = nn.Linear(10, 6)
+
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax()
+
+    def forward(self, x):
+        fc1 = F.relu((self.l1(x)))
+        out_x = self.softmax(self.l3(self.relu((self.l2(fc1)))))
+        return out_x
+
+class BlueNet_all3b(nn.Module):
+
+    def __init__(self):
+        super(BlueNet_all3b, self).__init__()
+        self.l1 = nn.Linear(21, 60)
+        self.l2 = nn.Linear(60, 40)
+        self.l3 = nn.Linear(40, 6)
+
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax()
+
+    def forward(self, x):
+        fc1 = F.relu((self.l1(x)))
+        out_x = self.softmax(self.l3(self.relu((self.l2(fc1)))))
+        return out_x
+
+class BlueNet_prob(nn.Module):
+
+    def __init__(self):
+        super(BlueNet_prob, self).__init__()
+        self.l1 = nn.Linear(8, 16)
+        self.l2 = nn.Linear(16, 32)
+        self.l3 = nn.Linear(32, 16)
+        self.l4 = nn.Linear(16, 6)
+
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax()
+
+    def forward(self, x):
+        fc1 = F.relu(self.l2(self.relu((self.l1(x)))))
+        out_x = self.softmax(self.l4(self.relu((self.l3(fc1)))))
+        return out_x
+
+# Model Selection
+models_sel= [BlueNet_all7a(), BlueNet_all7b(), BlueNet_all5a(), BlueNet_all5b(), BlueNet_all3a(), BlueNet_all3b()]
+
+# Visualization of training curve
+training_curve = []
+plt.figure
+plt.xlabel('epoch')
+plt.ylabel('Accuract Rate')
+plt.title('Growth of Accuracy Rate with different Network Models')
 
 # Train loop
 def train(epoch):
 
     model.train()
-
-    for _, (data, target) in enumerate(train_loader):
+    acc_result = 0
+    counter = 0
+    for batch_idx, (data, target) in enumerate(train_loader0):
         # reshape to vector
         #data = data.view(data.size(0), -1)
         # move to cuda if available
@@ -102,16 +254,20 @@ def train(epoch):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        if batch_idx % LOG_IN == 0:
-            # Check accuracy rate
-            #predict = torch.max(output, 1)[1]
-            #predict = predict.data.numpy().squeeze() 
-            #target = target.data.numpy()
-            #accuracy = sum(predict == target)
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data[0]))
-
+        counter += len(target)
+        # Check accuracy rate
+        predict = torch.max(output, 1)[1]
+        predict = predict.data.numpy().squeeze() 
+        target = target.data.numpy()
+        accuracy = sum(predict == target)
+        acc_result += accuracy
+        #if batch_idx % LOG_IN == 0:
+            #print(predict)
+            #print(target)
+            #print('Train Epoch: {} [{}/{} ({:.0f}%)]\tAccuracy Rate: {:.6f}'.format(
+            #    epoch, batch_idx * len(data), len(train_loader1.dataset),
+    model_tc.append(float(acc_result)/len(train_loader0.dataset))  
+    
 # define prediction
 def prediction(show_plot=False):
     best_loss = 100
@@ -124,15 +280,25 @@ def prediction(show_plot=False):
             torch.save(model.state_dict(), 'best_predictor.pth')
         return predict[:]
 
-best_loss = 0
-# run training
-for epoch in range(EPOCHS):
-    train(epoch)
-    
-    #test_loss = test(show_plot=epoch%10 == 1)
-    #if test_loss < best_loss:
-    #    best_loss = test_loss
-    #    if args.is_noisy:
-    #        torch.save(model.state_dict(), 'best_fc_denoising_autoencoder.pth')
-    #    else:
-    #        torch.save(model.state_dict(), 'best_fc_autoencoder.pth')
+for model in models_sel:
+
+    if IS_CUDA:
+        model.cuda()
+
+    optimizer = optim.Adam(model.parameters(), lr=LR)
+
+    # Loss criterion
+    criterion = nn.CrossEntropyLoss()
+    model_tc = []
+
+    # run training
+    for epoch in range(EPOCHS):
+        train(epoch)
+
+    training_curve.append(model_tc) 
+
+curve_name = ['7a', '7b', '5a', '5b', '3a', '3b']
+for i in range(len(training_curve)):
+    plt.plot(range(EPOCHS), training_curve[i], label = 'Model{}'.format(curve_name[i]))
+plt.legend()
+plt.show()
