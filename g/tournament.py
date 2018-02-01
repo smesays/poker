@@ -19,7 +19,7 @@ def yprint(): # enable printing
     sys.stdout = sys.__stdout__
 
 #if __name__ == "__main__":
-def tournament():
+def tournament(tourneynum):
     SIMULATE = 1
 #    SIMULATE = 0
     VS_BOT_STYLE = 6    # pick bot style to play against human, or None
@@ -31,11 +31,12 @@ def tournament():
     # smallest denomination of chips in each round
     MINCHIP_STRUCTURE=[25 , 25 , 25 , 25 , 100, 100 , 100 , 500 , 500 , 500 , 1000, 1000, 1000 , 1000 , 1000 , 1000 , 1000 ] 
 # simulate w/o minchip and see if results improved
-    print " "
-    print "                                                              **************************************************************"
-    print "                                                              * Welcome to the Texas No Limit Hold'em Heads-up Tournament! *"
-    print "                                                              **************************************************************"
-    print " "
+    if SIMULATE == 0:
+        print " "
+        print "                                                              **************************************************************"
+        print "                                                              * Welcome to the Texas No Limit Hold'em Heads-up Tournament! *"
+        print "                                                              **************************************************************"
+        print " "
 
     if SIMULATE == 1: 
         human = 'n'
@@ -130,16 +131,21 @@ def tournament():
     agent_log.append((agent1.name, agent1.style, report_winloss(agent1.balance)))
     agent_log.append((agent2.name, agent2.style, report_winloss(agent2.balance)))
 
-    print '                                                                   *******************************'
-    print '                                                                   ***** Thanks for playing! *****'
-    print '                                                                   *******************************'
-    print ' '
+    if SIMULATE == 0:
+        print '                                                                   *******************************'
+        print '                                                                   ***** Thanks for playing! *****'
+        print '                                                                   *******************************'
+        print ' '
+
     print agent_log
     print ' '
 #    print tourney_log
+
     if SIMULATE:
         f = open("../log/agent_log20180201.txt", "a")
         for i in range(len(agent_log)):
+            f.write("%d"%tourneynum)
+            f.write(",")
             f.write(",".join(map(lambda x: str(x), agent_log[i])))
             f.write("\n")
         f.close()
@@ -147,6 +153,8 @@ def tournament():
         f = open("../log/tourney_log20180201.txt", "a")
         for i in range(len(tourney_log)):
             for j in range(len(tourney_log[i])):
+                f.write("%d"%tourneynum)
+                f.write(",")
                 f.write(",".join(map(lambda x: str(x), tourney_log[i][j])))
                 f.write("\n")
         f.close()
@@ -154,11 +162,13 @@ def tournament():
         f = open("../log/tourney2_log20180201.txt", "a")
         for i in range(len(tourney2_log)):
             for j in range(len(tourney2_log[i])):
+                f.write("%d"%tourneynum)
+                f.write(",")
                 f.write(",".join(map(lambda x: str(x), tourney2_log[i][j])))
                 f.write("\n")
         f.close()
 
 
 if __name__ == "__main__":
-    for _ in range(1000):
-        tournament()
+    for ty in range(5000):
+        tournament(ty)
