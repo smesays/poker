@@ -3,10 +3,15 @@
 # fix do not ask raise or check or ... when $0
 # after last all-in raise, still need to call
 import sys
+import pickle
 
 class Gameplay():
     # when initializing, agents should be ordered so they go first alternately
     GAME_INDENT = 66    # number of spaces to indent the game messages
+#dup    # load dictionary to be used for all agents
+    pkl_file = open('type_prob_dict.pkl', 'rb')
+    type_prob_dict = pickle.load(pkl_file)
+    pkl_file.close()
 
     def __init__(self, gamenum, agent1, agent2, blind, minchip, prompt):
         '''
@@ -28,6 +33,7 @@ class Gameplay():
         self.phase = 0 # track the phase of the game
         self.betidx = -1
         self.betlog = [] # tuple (phase, betidx, agent, amt) is there a way to not store agent class? store 1 or 2 instead
+        self.betlog2 = []
         self.agent1_fold = 0
         self.agent2_fold = 0
         self.stop = 0
@@ -53,6 +59,18 @@ class Gameplay():
 
     def log_hole_cards(self, agent):
         return tuple(list(self.log_card(agent.hole1)) + list(self.log_card(agent.hole2)))
+#dup
+    def eval_hand(self, agent, card1=None, card2=None, card3=None, card4=None, card5=None):
+        if card1 is None:
+            if agent.hole1.getSuit() == agent.hole2.getSuit():
+                return min(1, (agent.hole1.getRank() + agent.hole2.getRank()) * 1.0 / 28 * 1.1)
+            elif agent.hole1.getRank() == agent.hole2.getRank():
+                return min(1, max(0.5, (agent.hole1.getRank() + agent.hole2.getRank()) * 1.0 / 28))
+            else:
+                return (agent.hole1.getRank() + agent.hole2.getRank()) * 1.0 / 28
+        else:
+            hand=Hand(agent.hole1, agent.hole2, card1, card2, card3, card4, card5)
+            return self.type_prob_dict[hand.hand_type]
 
     def bets(self, agent, amt, betact='b', blind='', printpot=1):
         # if have time, do minimum denom of $5, and progressively going up
@@ -68,6 +86,9 @@ class Gameplay():
             print '  Pot has $%d' % self.pot
         self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, agent.name, agent.style, betact, amt, self.blind, agent.balance, self.pot] + \
                                  list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))
+        if self.phase != 0:
+            self.betlog2.append(( self.gamenum, self.phase, self.betidx, agent.name, agent.style, betact, amt, self.blind, agent.balance, self.pot, \
+                                  self.eval_hand(agent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
 
 # how to figure out when to reveal hole cards to the log?
     def raiseamt_audit(self, betagent, resagent, betact, raiseamt):
@@ -128,6 +149,9 @@ class Gameplay():
             print "    %s checks." % betagent.name
             self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, betagent.name, betagent.style, betact, betamt, self.blind, betagent.balance, self.pot] + \
                                      list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) ))
+            if self.phase != 0:
+                self.betlog2.append(( self.gamenum, self.phase, self.betidx, betagent.name, betagent.style, betact, betamt, self.blind, betagent.balance, self.pot, \
+                                      self.eval_hand(betagent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
         elif betact == 'a':
 # logic here is a bit of a mess because of using the same agent.responds .... see if can tighten it up
             betact = 'r'
@@ -185,6 +209,9 @@ class Gameplay():
             # to cause a player to fold
             self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, resagent.name, resagent.style, betact, callamt, self.blind, resagent.balance, self.pot] + \
                                      list(self.log_comm_cards()) + list(self.log_hole_cards(resagent)) ))
+            if self.phase != 0:
+                self.betlog2.append(( self.gamenum, self.phase, self.betidx, resagent.name, resagent.style, betact, callamt, self.blind, resagent.balance, self.pot, \
+                                      self.eval_hand(resagent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
 
         return checkflag, checkflag, foldflag
 
@@ -291,10 +318,10 @@ class Gameplay():
         print "  %s's hand " % self.agent2.name, agent2_hand, "is a %s" % agent2_hand.hand_name
         if agent1_hand.hand_rank > agent2_hand.hand_rank:
             self.agent1.wins(self.pot)
-            print '  Result: ', self.agent1.name, 'wins $', self.pot, 'with', agent1_hand.hand_name
+            print '  Result: %s wins $%d with %s' % (self.agent1.name, self.pot, agent1_hand.hand_name)
         elif agent2_hand.hand_rank > agent1_hand.hand_rank:
             self.agent2.wins(self.pot)
-            print '  Result: ', self.agent2.name, 'wins $', self.pot, 'with', agent2_hand.hand_name
+            print '  Result: %s wins $%d with %s' % (self.agent2.name, self.pot, agent2_hand.hand_name)
         else:
             print '  Result: Draw. '
             self.agent1.wins(self.pot/2)

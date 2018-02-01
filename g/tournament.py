@@ -22,10 +22,9 @@ if __name__ == "__main__":
 
     SIMULATE = 1
 #    SIMULATE = 0
-    VS_BOT_STYLE = 2    # pick bot style to play against human
-#    VS_BOT_STYLE = None
-    BOT_STYLE1 = None   # pick bot style 1 for bots play 
-    BOT_STYLE2 = None   # pick bot style 2 for bots play
+    VS_BOT_STYLE = 4    # pick bot style to play against human, or None
+    BOT_STYLE1 = None   # pick bot style 1 for bots play, or None
+    BOT_STYLE2 = None   # pick bot style 2 for bots play, or None
     BUY_IN = 20000  # standard tournament with initial buy-in $20k
     # structure of blinds follows https://www.cardplayer.com/poker-tournaments/2605-2009-nbc-national-heads-up-championship/18234
     BLIND_STRUCTURE  =[150, 200, 300, 400, 600, 1000, 1500, 2000, 3000, 4000, 5000, 8000, 10000, 15000, 20000, 30000, 40000]
@@ -79,6 +78,7 @@ if __name__ == "__main__":
     roundnum = 0
 
     tourney_log = []
+    tourney2_log = []
     agent_log = []
     game_stat_log = []
     while ((agent1.balance > 0) & (agent2.balance > 0)):
@@ -116,6 +116,7 @@ if __name__ == "__main__":
             game.play()
             game_stat_log.append((game.phase, game.pot))
             tourney_log.append(game.betlog)
+            tourney2_log.append(game.betlog2)
             yprint()
         if human == 'y':
             time.sleep(1)
@@ -146,6 +147,13 @@ if __name__ == "__main__":
         for i in range(len(tourney_log)):
             for j in range(len(tourney_log[i])):
                 f.write(",".join(map(lambda x: str(x), tourney_log[i][j])))
+                f.write("\n")
+        f.close()
+
+        f = open("../log/tourney2_log20180201.txt", "a")
+        for i in range(len(tourney2_log)):
+            for j in range(len(tourney2_log[i])):
+                f.write(",".join(map(lambda x: str(x), tourney2_log[i][j])))
                 f.write("\n")
         f.close()
 

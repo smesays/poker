@@ -2,11 +2,11 @@
 #execfile("card.py")
 #a.append(tuple([2, 3, ]+list(dodo())+list(dodo())+list(dodo()) ))
 
-dict={1:'a', 2:'b', 3:'d'}
-print len(dict)
-import random
-for i in range(10):
-    print random.choice(range(1,len(dict)+1))
+import time
+import numpy as np
+for i in range(30):
+#    print time.time()
+    print int(time.time()*np.random.uniform(0,1)/10000)
 
 #hand1=Hand(Card(1),Card(14),Card(40),Card(13),Card(51))
 
