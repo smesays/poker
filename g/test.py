@@ -2,11 +2,9 @@
 #execfile("card.py")
 #a.append(tuple([2, 3, ]+list(dodo())+list(dodo())+list(dodo()) ))
 
-import time
-import numpy as np
-for i in range(30):
-#    print time.time()
-    print int(time.time()*np.random.uniform(0,1)/10000)
+betact, betamt = 'c', 0
+
+print betact, betamt
 
 #hand1=Hand(Card(1),Card(14),Card(40),Card(13),Card(51))
 

@@ -216,8 +216,7 @@ class Agent():
            betact == 'c' and call_ratio < 1.51 and rand < 0.65 or \
            betact == 'k' and rand < 0.1: 
             print 'style all-in change to a'
-            betact = 'a'
-            betamt = 0
+            betact, betamt = 'a', 0
         return betact, betamt
 
     def round_up_all_in(self, callamt, betact, betamt, pct_left):                            
@@ -226,8 +225,7 @@ class Agent():
 #            print 'respond1'
             if (betact == 'c') | (betact == 'r'):
 #                print 'respond1a bef', betact, betamt
-                betact = 'r'
-                betamt = self.balance - callamt
+                betact, betamt = 'r', self.balance - callamt
 #                print 'respond1a aft', betact, betamt
         elif betamt * 1.0 / self.balance > (1-pct_left):
 #            print 'respond2'
@@ -256,15 +254,13 @@ class Agent():
         elif self.BOT_STYLE_MAP[style] == 'random':
             betact, betamt = self.style_random(potsize, callamt)
 
-        elif self.BOT_STYLE_MAP[self.style] == 'all-in':
+        elif self.BOT_STYLE_MAP[style] == 'all-in':
             print 'responds base all-in'
             betact, betamt = self.style_all_in(blind, potsize, callamt, card1, card2, card3, card4, card5)
             print 'responds base all-in', betact, betamt
         
         elif self.BOT_STYLE_MAP[style] == 'multi-style':
-#            randstyle = random.choice(range(len(self.BOT_STYLE_MAP)))+1
-# not sure why this fails with style 5
-            randstyle = random.choice([1,2,3,4]) 
+            randstyle = random.choice(range(len(self.BOT_STYLE_MAP)))+1
             print 'randomly selected style', randstyle
             betact, betamt = self.responds_base(blind, potsize, callamt, card1, card2, card3, card4, card5, randstyle)
             print 'randomly selected style', randstyle, betact, betamt
