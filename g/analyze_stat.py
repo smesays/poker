@@ -1,7 +1,7 @@
 import numpy as np
 
 agent_stat_data = np.genfromtxt('../log/agent_log20180201.txt', delimiter=',')
-agent_stat_data = agent_stat_data[:,1:]
+agent_stat_data = agent_stat_data[:,2:]
 #print agent_stat_data
 
 agentlist = np.unique(agent_stat_data[:,0])

@@ -15,7 +15,7 @@ import pandas as pd
 
 # Global Parameters:
 BATCH_SIZE = 128
-IS_CUDA    = True
+IS_CUDA    = False
 LR         = 0.02
 MOMENTUM   = 1e-6
 EPOCHS      = 1
