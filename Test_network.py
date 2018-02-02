@@ -18,8 +18,8 @@ BATCH_SIZE = 128
 IS_CUDA    = False
 LR         = 0.02
 MOMENTUM   = 1e-6
-EPOCHS      = 100
-LOG_IN     = 100
+EPOCHS      = 20
+LOG_IN     = 1000
 # Load Dataset
 def load_dataset(path, mask):
     
@@ -44,9 +44,9 @@ def load_dataset(path, mask):
     data = np.insert(data, 0, act, axis = 1)
     
     # Delete pre-flop
-    del_pf_mask = [i for i in range(len(data)) if data[i, 1] == 0]
-    data = np.delete(data, del_pf_mask, 0) 
-    target = np.delete(target, del_pf_mask, 0) 
+    #del_pf_mask = [i for i in range(len(data)) if data[i, 1] == 0]
+    #data = np.delete(data, del_pf_mask, 0) 
+    #target = np.delete(target, del_pf_mask, 0) 
     
     # Adjust non-fold balance
     # If anything needs to be added or subtracted
@@ -72,6 +72,7 @@ def load_dataset(path, mask):
     rand.shuffle(mask6)
     
     min_to_take = min(len(mask1), len(mask2), len(mask3), len(mask4), len(mask5), len(mask6))
+    min_to_take = 3000
     print('The number of data to be taken from each class = {}'.format(min_to_take))
     total_mask = mask1[0:min_to_take] + mask2[0:min_to_take] + mask3[0:min_to_take] + mask4[0:min_to_take] + mask5[0:min_to_take] + mask6[0:min_to_take]
     
@@ -105,17 +106,17 @@ train_loader0 = DataLoader(train_set0, batch_size=BATCH_SIZE, shuffle=True, num_
 
 # Network Architecture of different configuration:
 
-class BlueNet_all7a(nn.Module):
+class BlueNet_all6a(nn.Module):
 
     def __init__(self):
-        super(BlueNet_all7a, self).__init__()
-        self.l1 = nn.Linear(21, 40)
-        self.l2 = nn.Linear(40, 120)
-        self.l3 = nn.Linear(120, 480)
-        self.l4 = nn.Linear(480, 120)
-        self.l5 = nn.Linear(120, 40)
-        self.l6 = nn.Linear(40, 20)
-        self.l7 = nn.Linear(20, 6)
+        super(BlueNet_all6a, self).__init__()
+        self.l1 = nn.Linear(21, 42)
+        self.l2 = nn.Linear(42, 84)
+        self.l3 = nn.Linear(84, 84)
+        self.l4 = nn.Linear(84, 84)
+        self.l5 = nn.Linear(84, 42)
+        self.l6 = nn.Linear(42, 21)
+        self.l7 = nn.Linear(21, 6)
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -125,10 +126,10 @@ class BlueNet_all7a(nn.Module):
         out_x = self.softmax(self.l7(self.relu(self.l6(self.relu(self.l5(self.relu(self.l4(fc1))))))))
         return out_x
 
-class BlueNet_all7b(nn.Module):
+class BlueNet_all6b(nn.Module):
 
     def __init__(self):
-        super(BlueNet_all7b, self).__init__()
+        super(BlueNet_all6b, self).__init__()
         self.l1 = nn.Linear(21, 80)
         self.l2 = nn.Linear(80, 240)
         self.l3 = nn.Linear(240, 480)
@@ -145,15 +146,15 @@ class BlueNet_all7b(nn.Module):
         out_x = self.softmax(self.l7(self.relu(self.l6(self.relu(self.l5(self.relu(self.l4(fc1))))))))
         return out_x
     
-class BlueNet_all5a(nn.Module):
+class BlueNet_all4a(nn.Module):
 
     def __init__(self):
-        super(BlueNet_all5a, self).__init__()
-        self.l1 = nn.Linear(21, 40)
-        self.l2 = nn.Linear(40, 120)
-        self.l3 = nn.Linear(120, 40)
-        self.l4 = nn.Linear(40, 20)
-        self.l5 = nn.Linear(20, 6)
+        super(BlueNet_all4a, self).__init__()
+        self.l1 = nn.Linear(21, 42)
+        self.l2 = nn.Linear(42, 84)
+        self.l3 = nn.Linear(84, 42)
+        self.l4 = nn.Linear(42, 21)
+        self.l5 = nn.Linear(21, 6)
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -163,10 +164,10 @@ class BlueNet_all5a(nn.Module):
         out_x = self.softmax(self.l5(self.relu(self.l4(self.relu((self.l3(fc1)))))))
         return out_x
 
-class BlueNet_all5b(nn.Module):
+class BlueNet_all4b(nn.Module):
 
     def __init__(self):
-        super(BlueNet_all5b, self).__init__()
+        super(BlueNet_all4b, self).__init__()
         self.l1 = nn.Linear(21, 60)
         self.l2 = nn.Linear(60, 120)
         self.l3 = nn.Linear(120, 60)
@@ -181,13 +182,13 @@ class BlueNet_all5b(nn.Module):
         out_x = self.softmax(self.l5(self.relu(self.l4(self.relu((self.l3(fc1)))))))
         return out_x
     
-class BlueNet_all3a(nn.Module):
+class BlueNet_all2a(nn.Module):
 
     def __init__(self):
-        super(BlueNet_all3a, self).__init__()
-        self.l1 = nn.Linear(21, 40)
-        self.l2 = nn.Linear(40, 10)
-        self.l3 = nn.Linear(10, 6)
+        super(BlueNet_all2a, self).__init__()
+        self.l1 = nn.Linear(21, 42)
+        self.l2 = nn.Linear(42, 21)
+        self.l3 = nn.Linear(21, 6)
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -197,10 +198,10 @@ class BlueNet_all3a(nn.Module):
         out_x = self.softmax(self.l3(self.relu((self.l2(fc1)))))
         return out_x
 
-class BlueNet_all3b(nn.Module):
+class BlueNet_all2b(nn.Module):
 
     def __init__(self):
-        super(BlueNet_all3b, self).__init__()
+        super(BlueNet_all2b, self).__init__()
         self.l1 = nn.Linear(21, 60)
         self.l2 = nn.Linear(60, 40)
         self.l3 = nn.Linear(40, 6)
@@ -231,8 +232,9 @@ class BlueNet_prob(nn.Module):
         return out_x
 
 # Model Selection
-models_sel= [BlueNet_all7a(), BlueNet_all7b(), BlueNet_all5a(), BlueNet_all5b(), BlueNet_all3a(), BlueNet_all3b()]
-
+models_sel= [BlueNet_all6a(), BlueNet_all4a(), BlueNet_all2a()]
+best_model = 0
+best_acc = 0
 # Visualization of training curve
 training_curve = []
 plt.figure
@@ -241,17 +243,17 @@ plt.ylabel('Accuract Rate')
 plt.title('Growth of Accuracy Rate with different Network Models')
 
 # Train loop
-def train(epoch):
+def train(epoch, best_acc):
 
     model.train()
     acc_result = 0
-    counter = 0
     for batch_idx, (data, target) in enumerate(train_loader0):
         # reshape to vector
         #data = data.view(data.size(0), -1)
         # move to cuda if available
         if IS_CUDA:
             data = data.cuda()
+            target = target.cuda()
         # convert to Variable
         data = Variable(data.type(torch.FloatTensor))
         target = Variable(target.type(torch.LongTensor))
@@ -262,31 +264,40 @@ def train(epoch):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        counter += len(target)
         # Check accuracy rate
         predict = torch.max(output, 1)[1]
         predict = predict.data.numpy().squeeze() 
         target = target.data.numpy()
         accuracy = sum(predict == target)
         acc_result += accuracy
-        #if batch_idx % LOG_IN == 0:
+        if batch_idx % LOG_IN == 0:
             #print(predict)
             #print(target)
-            #print('Train Epoch: {} [{}/{} ({:.0f}%)]\tAccuracy Rate: {:.6f}'.format(
-            #    epoch, batch_idx * len(data), len(train_loader0.dataset),
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tAccuracy Rate: {:.6f}'.format(
+                epoch, batch_idx * len(data), len(train_loader0.dataset),
+                100. * batch_idx / len(train_loader0), accuracy/float(len(data))))
+            
     model_tc.append(float(acc_result)/len(train_loader0.dataset))  
+    
+    if model_tc[-1] > best_acc:
+        return model_tc[-1]
+    else:
+        return 0
     
 # define prediction
 def prediction():
     prediction_list = []
     for batch_x, _ in train_loader0:
+        if IS_CUDA:
+            batch_x = batch_x.cuda()
         best_loss = 100
         batch_x = Variable(batch_x.type(torch.FloatTensor))
-        predict_target = model(batch_x)
+        predict_target = best_model(batch_x)
         predict = torch.max(predict_target, 1)[1]
         predict = predict.data.numpy().squeeze()
+        
         prediction_list.append(predict)
-    return np.array(prediction_list)
+    return np.concatenate(prediction_list)
 
 for model in models_sel:
 
@@ -301,16 +312,19 @@ for model in models_sel:
 
     # run training
     for epoch in range(EPOCHS):
-        train(epoch)
+        update_acc = train(epoch, best_acc)
+        if update_acc != 0:
+            best_acc = update_acc
+            best_model = model
 
     training_curve.append(model_tc) 
 
-curve_name = ['7a', '7b', '5a', '5b', '3a', '3b']
+curve_name = ['6a', '4a', '2a']
 for i in range(len(training_curve)):
     plt.plot(range(EPOCHS), training_curve[i], label = 'Model{}'.format(curve_name[i]))
 plt.legend()
 plt.savefig('./result/accuracy_growth.png')
 #plt.show()
 
-#confumat = confusion_matrix(prediction(), train_set0.target)
-#pd.DataFrame(confumat)
+confumat = confusion_matrix(prediction(), train_set0.target)
+pd.DataFrame(confumat)
