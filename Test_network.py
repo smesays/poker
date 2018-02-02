@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import numpy as np
 import random as rand
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import torch.optim as optim
@@ -13,10 +15,10 @@ import pandas as pd
 
 # Global Parameters:
 BATCH_SIZE = 128
-IS_CUDA    = False
+IS_CUDA    = True
 LR         = 0.02
 MOMENTUM   = 1e-6
-EPOCHS      = 100
+EPOCHS      = 1
 LOG_IN     = 100
 # Load Dataset
 def load_dataset(path, mask):
@@ -70,13 +72,13 @@ def load_dataset(path, mask):
     rand.shuffle(mask6)
     
     min_to_take = min(len(mask1), len(mask2), len(mask3), len(mask4), len(mask5), len(mask6))
-    print('The number of data to be taken from each class = {}'in min_to_take)
+    print('The number of data to be taken from each class = {}'.format(min_to_take))
     total_mask = mask1[0:min_to_take] + mask2[0:min_to_take] + mask3[0:min_to_take] + mask4[0:min_to_take] + mask5[0:min_to_take] + mask6[0:min_to_take]
     
     data = data[total_mask, :]
     target = target[total_mask]
     
-    print(np.shape(data), np.shape(target))
+    print('Shape of data: {}, shape of target: {}'.format(np.shape(data), np.shape(target)))
     # Type 0:
     # Selcted attributes: betact, phase, betidx, blind-r, blind, bal-r,   pot-r + list(comm_cards + list(hole_cards)
     #                     (0),    (1),   (2),    (3),     (4),   (5),     (6),    (7) - (20)
@@ -279,7 +281,7 @@ def prediction():
     prediction_list = []
     for batch_x, _ in train_loader:
         best_loss = 100
-        data = Variable(batch_x.type(torch.FloatTensor))
+        batch_x = Variable(batch_x.type(torch.FloatTensor))
         predict_target = model(data)
         predict = torch.max(predict_target, 1)[1]
         predict = predict.data.numpy().squeeze()
@@ -308,7 +310,7 @@ for i in range(len(training_curve)):
     plt.plot(range(EPOCHS), training_curve[i], label = 'Model{}'.format(curve_name[i]))
 plt.legend()
 plt.savefig('./result/accuracy_growth.png')
-plt.show()
+#plt.show()
 
 confumat = confusion_matrix(prediction(train_set0.data), train_set0.target)
-pd.DataFrame(cfm)
+pd.DataFrame(confumat)
