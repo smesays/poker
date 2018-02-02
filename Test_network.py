@@ -18,7 +18,7 @@ BATCH_SIZE = 128
 IS_CUDA    = False
 LR         = 0.02
 MOMENTUM   = 1e-6
-EPOCHS      = 1
+EPOCHS      = 100
 LOG_IN     = 100
 # Load Dataset
 def load_dataset(path, mask):
@@ -279,10 +279,10 @@ def train(epoch):
 # define prediction
 def prediction():
     prediction_list = []
-    for batch_x, _ in train_loader:
+    for batch_x, _ in train_loader0:
         best_loss = 100
         batch_x = Variable(batch_x.type(torch.FloatTensor))
-        predict_target = model(data)
+        predict_target = model(batch_x)
         predict = torch.max(predict_target, 1)[1]
         predict = predict.data.numpy().squeeze()
         prediction_list.append(predict)
@@ -312,5 +312,5 @@ plt.legend()
 plt.savefig('./result/accuracy_growth.png')
 #plt.show()
 
-confumat = confusion_matrix(prediction(train_set0.data), train_set0.target)
-pd.DataFrame(confumat)
+#confumat = confusion_matrix(prediction(), train_set0.target)
+#pd.DataFrame(confumat)
