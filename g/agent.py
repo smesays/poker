@@ -10,7 +10,7 @@ import math
 import numpy as np
 
 class Agent():
-    BOT_STYLE_MAP = {1:'aggressive', 2:'conservative', 3:'high_hater', 4:'random', 5:'decoyer', 6:'lier'}
+    BOT_STYLE_MAP = {1:'aggressive', 2:'conservative', 3:'high_hater', 4:'random', 5:'feign', 6:'lier'}
 
     # load dictionary to be used for all agents
     pkl_file = open('type_prob_dict.pkl', 'rb')
@@ -173,7 +173,7 @@ class Agent():
             return 'r', int(win_prob/(1-win_prob+0.000000001) * potsize)*randfct
         return 'a', 0 # better than 2-pair
 
-    def style_decoyer(self, blind, potsize, callamt, *args):
+    def style_feign(self, blind, potsize, callamt, *args):
 
         cards = list(args)
         status = 5 - len(cards) # 5 pre-flop 2 flop 1 turn 0 river
@@ -411,8 +411,8 @@ class Agent():
             betact, betamt = self.style_conservative(blind, potsize, callamt, card1, card2, card3, card4, card5)
             betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.02)
 
-        elif self.BOT_STYLE_MAP[style] == 'decoyer':
-            betact, betamt = self.style_decoyer(blind, potsize, callamt, card1, card2, card3, card4, card5)
+        elif self.BOT_STYLE_MAP[style] == 'feign':
+            betact, betamt = self.style_feign(blind, potsize, callamt, card1, card2, card3, card4, card5)
             betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.02)
 
         elif self.BOT_STYLE_MAP[style] == 'lier':
