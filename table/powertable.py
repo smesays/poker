@@ -2,13 +2,14 @@ from functools import reduce
 from itertools import groupby
 from itertools import combinations
 import random
+import pickle
 
 class PowerTable:
 
     def __init__(self):
         self.bfs_table = {}
-        self.pf_score = []
-        self.flop_score = []
+        self.pf_score = {}
+        self.flop_score = {}
         self.deep_hand()
         self.pf_table()
 
@@ -38,7 +39,7 @@ class PowerTable:
             #f.write(",".join(map(lambda x: str(x), [iden_f, score])))
             if score < 4:
                 improvement = self.eval_prob(suit, rank)
-                self.flop_score.append([iden_f, improvement])
+                self.flop_score[iden_f] = improvement
             print(counter)
             counter += 1
         #f.close()
@@ -51,7 +52,7 @@ class PowerTable:
             iden_pf = rank[1]*(10**4) + rank[0]*(10**2) + suit[1]*(10) + suit[0]
             score_pf = self.eval_flop(cards)
             print(iden_pf)
-            self.pf_score.append([iden_pf, score_pf/19600.0])
+            self.pf_score[iden_pf] = score_pf/19600.0
 
     def eval_flop(self, p_cards):
         idx_list = range(1, 53)
@@ -132,14 +133,11 @@ class PowerTable:
 #-------------------------------------------------------------------------------------------------
 decisiontable = PowerTable()
 
-#f = open("decision_table_preflop.txt", "w")
-#for i in range(len(decisiontable.pf_score)):
-#    f.write(",".join(map(lambda x: str(x), decisiontable.pf_score[i])))
-#    f.write("\n")
-#f.close()
+output = open('decision_table_preflop.txt', 'wb') 
+pickle.dump(decisiontable.pf_score, output) 
+output.close()
 
-#f = open("decision_table_flop.txt", "w")
-#for i in range(len(decisiontable.flop_score)):
-#    f.write(",".join(map(lambda x: str(x), decisiontable.flop_score[i])))
-#    f.write("\n")
-#f.close()
+output = open('decision_table_flop.txt', 'wb') 
+pickle.dump(decisiontable.flop_score, output) 
+output.close()
+
