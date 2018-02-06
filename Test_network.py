@@ -15,10 +15,10 @@ import pandas as pd
 
 # Global Parameters:
 BATCH_SIZE = 128
-IS_CUDA    = False
+IS_CUDA    = True
 LR         = 0.02
 MOMENTUM   = 1e-6
-EPOCHS      = 20
+EPOCHS      = 50
 LOG_IN     = 1000
 # Load Dataset
 def load_dataset(path, mask):
@@ -72,7 +72,6 @@ def load_dataset(path, mask):
     rand.shuffle(mask6)
     
     min_to_take = min(len(mask1), len(mask2), len(mask3), len(mask4), len(mask5), len(mask6))
-    min_to_take = 3000
     print('The number of data to be taken from each class = {}'.format(min_to_take))
     total_mask = mask1[0:min_to_take] + mask2[0:min_to_take] + mask3[0:min_to_take] + mask4[0:min_to_take] + mask5[0:min_to_take] + mask6[0:min_to_take]
     
@@ -250,13 +249,15 @@ def train(epoch, best_acc):
     for batch_idx, (data, target) in enumerate(train_loader0):
         # reshape to vector
         #data = data.view(data.size(0), -1)
+        data = data.type(torch.FloatTensor)
+        target = target.type(torch.LongTensor)
         # move to cuda if available
         if IS_CUDA:
             data = data.cuda()
             target = target.cuda()
         # convert to Variable
-        data = Variable(data.type(torch.FloatTensor))
-        target = Variable(target.type(torch.LongTensor))
+        data = Variable(data)
+        target = Variable(target)
         # forward: evaluate with model
         output = model(data)
         loss = criterion(output, target)
@@ -266,8 +267,8 @@ def train(epoch, best_acc):
         optimizer.step()
         # Check accuracy rate
         predict = torch.max(output, 1)[1]
-        predict = predict.data.numpy().squeeze() 
-        target = target.data.numpy()
+        predict = predict.cpu().data.numpy().squeeze() 
+        target = target.cpu().data.numpy()
         accuracy = sum(predict == target)
         acc_result += accuracy
         if batch_idx % LOG_IN == 0:
@@ -285,16 +286,18 @@ def train(epoch, best_acc):
         return 0
     
 # define prediction
+
 def prediction():
     prediction_list = []
     for batch_x, _ in train_loader0:
+        batch_x = batch_x.type(torch.FloatTensor)
         if IS_CUDA:
             batch_x = batch_x.cuda()
         best_loss = 100
-        batch_x = Variable(batch_x.type(torch.FloatTensor))
+        batch_x = Variable(batch_x)
         predict_target = best_model(batch_x)
         predict = torch.max(predict_target, 1)[1]
-        predict = predict.data.numpy().squeeze()
+        predict = predict.cpu().data.numpy().squeeze()
         
         prediction_list.append(predict)
     return np.concatenate(prediction_list)
@@ -327,4 +330,4 @@ plt.savefig('./result/accuracy_growth.png')
 #plt.show()
 
 confumat = confusion_matrix(prediction(), train_set0.target)
-pd.DataFrame(confumat)
+print(pd.DataFrame(confumat))

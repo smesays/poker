@@ -72,23 +72,24 @@ class Gameplay():
             hand=Hand(agent.hole1, agent.hole2, card1, card2, card3, card4, card5)
             return self.type_prob_dict[hand.hand_type]
 
-    def bets(self, agent, amt, betact='b', blind='', printpot=1):
+    # amt is callamt if callamt is 0
+    # amt is raiseamt if callamt > 0
+    def bets(self, agent, amt, betact='b', blind='', printpot=1, callamt=0):
         # if have time, do minimum denom of $5, and progressively going up
         if amt > agent.balance:
             amt = agent.balance
 
-        map_act = {'b':'bets', 'c':'calls', 'r':'raises'}
+        map_act = {'b':'bets', 'c':'calls', 'r':'calls and raises'}
         self.betidx += 1
-        agent.bets(amt)
+        agent.bets(amt+callamt)
         print '    %s %s%s $%d.' % (agent.name, map_act[betact], blind, amt), agent
-        self.to_pot(amt)
+        self.to_pot(amt+callamt)
         if (self.prompt != 0) & printpot == 1:
             print '  Pot has $%d' % self.pot
         if self.phase != 0:
-            self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, agent.name, agent.style, betact, amt, self.blind, agent.balance, self.pot] + \
-                                 list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))
-            self.betlog2.append(( self.gamenum, self.phase, self.betidx, agent.name, agent.style, betact, amt, self.blind, agent.balance, self.pot, \
-                                  self.eval_hand(agent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
+            self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, agent.name, agent.style, betact, amt+callamt, self.blind, agent.balance, self.pot] + \
+                                      list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))#+ \
+#                                      self.eval_hand(agent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
 
 # how to figure out when to reveal hole cards to the log?
     def raiseamt_audit(self, betagent, resagent, betact, raiseamt):
@@ -149,9 +150,8 @@ class Gameplay():
             print "    %s checks." % betagent.name
             if self.phase != 0:
                 self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, betagent.name, betagent.style, betact, betamt, self.blind, betagent.balance, self.pot] + \
-                                     list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) ))
-                self.betlog2.append(( self.gamenum, self.phase, self.betidx, betagent.name, betagent.style, betact, betamt, self.blind, betagent.balance, self.pot, \
-                                      self.eval_hand(betagent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
+                                         list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) ))#+ \
+#                                         self.eval_hand(betagent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
         elif betact == 'a':
 # logic here is a bit of a mess because of using the same agent.responds .... see if can tighten it up
             betact = 'r'
@@ -209,9 +209,8 @@ class Gameplay():
             # to cause a player to fold
             if self.phase != 0:
                 self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, resagent.name, resagent.style, betact, callamt, self.blind, resagent.balance, self.pot] + \
-                                     list(self.log_comm_cards()) + list(self.log_hole_cards(resagent)) ))
-                self.betlog2.append(( self.gamenum, self.phase, self.betidx, resagent.name, resagent.style, betact, callamt, self.blind, resagent.balance, self.pot, \
-                                      self.eval_hand(resagent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
+                                         list(self.log_comm_cards()) + list(self.log_hole_cards(resagent)) ))# + \
+#                                         self.eval_hand(resagent, self.flop1, self.flop2, self.flop3, self.turn, self.river)) ))
 
         return checkflag, checkflag, foldflag
 

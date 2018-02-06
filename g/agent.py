@@ -1,4 +1,5 @@
 # add callamt / balance to not raise again
+# allbets / balance to figure out how much committed and .....
 # prob to bluff, but only a very small chance to the detriment of balance
 # each number is a random float choice
 # depending on blind/balance, shift style?
@@ -10,7 +11,7 @@ import math
 import numpy as np
 
 class Agent():
-    BOT_STYLE_MAP = {1:'aggressive', 2:'conservative', 3:'high_hater', 4:'random', 5:'feign', 6:'lier'}
+    BOT_STYLE_MAP = {1:'aggressive', 2:'conservative', 3:'high_hater', 4:'random', 5:'all-in', 6:'multi-style', 7:'feign', 8:'bluff'}
 
     # load dictionary to be used for all agents
     pkl_file = open('type_prob_dict.pkl', 'rb')
@@ -248,7 +249,7 @@ class Agent():
         return act, amt
 
 
-    def style_lier(self, blind, potsize, callamt, *args):
+    def style_bluff(self, blind, potsize, callamt, *args):
 
         cards = list(args)
         status = 5 - len(cards) # 5 pre-flop 2 flop 1 turn 0 river
@@ -415,8 +416,8 @@ class Agent():
             betact, betamt = self.style_feign(blind, potsize, callamt, card1, card2, card3, card4, card5)
             betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.02)
 
-        elif self.BOT_STYLE_MAP[style] == 'lier':
-            betact, betamt = self.style_lier(blind, potsize, callamt, card1, card2, card3, card4, card5)
+        elif self.BOT_STYLE_MAP[style] == 'bluff':
+            betact, betamt = self.style_bluff(blind, potsize, callamt, card1, card2, card3, card4, card5)
             betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.02)
 
         elif self.BOT_STYLE_MAP[style] == 'high_hater':
@@ -435,10 +436,6 @@ class Agent():
             print 'randomly selected style', randstyle
             betact, betamt = self.responds_base(blind, potsize, callamt, card1, card2, card3, card4, card5, randstyle)
             print 'randomly selected style', randstyle, betact, betamt
-
-        elif self.BOT_STYLE_MAP[style] == 'stupid': # always call
-            betact = 'c'
-            betamt = 0 
 
         return betact, betamt
 

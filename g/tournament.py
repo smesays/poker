@@ -7,6 +7,12 @@ import sys, os, time
 import random
 import pickle
 
+#SIMULATE = 1
+SIMULATE = 0
+VS_BOT_STYLE = None    # pick bot style to play against human, or None
+BOT_STYLE1 = None   # pick bot style 1 for bots play, or None
+BOT_STYLE2 = None   # pick bot style 2 for bots play, or None
+
 def report_winloss(bal):
     if bal == 0:
         return -1
@@ -20,11 +26,6 @@ def yprint(): # enable printing
 
 #if __name__ == "__main__":
 def tournament(tourneynum):
-    SIMULATE = 1
-#    SIMULATE = 0
-    VS_BOT_STYLE = 6    # pick bot style to play against human, or None
-    BOT_STYLE1 = None   # pick bot style 1 for bots play, or None
-    BOT_STYLE2 = None   # pick bot style 2 for bots play, or None
     BUY_IN = 20000  # standard tournament with initial buy-in $20k
     # structure of blinds follows https://www.cardplayer.com/poker-tournaments/2605-2009-nbc-national-heads-up-championship/18234
     BLIND_STRUCTURE  =[150, 200, 300, 400, 600, 1000, 1500, 2000, 3000, 4000, 5000, 8000, 10000, 15000, 20000, 30000, 40000]
@@ -170,5 +171,8 @@ def tournament(tourneynum):
 
 
 if __name__ == "__main__":
-    for ty in range(5000):
-        tournament(ty)
+    if SIMULATE:  
+        for ty in range(5000):
+            tournament(ty)
+    if SIMULATE == 0:
+        tournament(1)
