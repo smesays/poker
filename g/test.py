@@ -1,11 +1,11 @@
 #execfile("hand.py")
 #execfile("card.py")
 #a.append(tuple([2, 3, ]+list(dodo())+list(dodo())+list(dodo()) ))
-
-a=19294.2883994835
-print '%6.4f' % a
-print '%10.4f' % a
-print '%12.4f' % a
+import numpy as np
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6], [7, 8]])
+c = np.concatenate((a, b), axis=1)
+print c
 
 #hand1=Hand(Card(1),Card(14),Card(40),Card(13),Card(51))
 

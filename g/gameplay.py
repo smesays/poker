@@ -104,14 +104,14 @@ class Gameplay():
 
 # how to figure out when to reveal hole cards to the log?
     def raiseamt_audit(self, betagent, resagent, betact, raiseamt):
-#        print 'raisechk', betact, raiseamt
+        print 'raisechk', betact, raiseamt
         if resagent.balance == 0:
-#            print 'raisechk 1'
+            print 'raisechk 1'
             return 'c', 0
         elif raiseamt > resagent.balance:
-#            print 'raisechk 2'
+            print 'raisechk 2'
             return betact, resagent.balance
-#        print 'raisechk 3'
+        print 'raisechk 3'
         return betact, self.minchip_audit(raiseamt)
     
     def res_audit(self, betagent, callamt, resagent, resact, resamt):
@@ -139,11 +139,15 @@ class Gameplay():
 
     def bet_audit(self, betagent, betact, betamt, resagent):
         if betact == 'b' or betact == 'r':
-#            print 'bet audit bef', betact, betamt
+            print 'bet audit bef', betact, betamt
             if betamt > resagent.balance: # cannot bet more than opponent's balance
                 betamt = resagent.balance
-#            print 'bet audit aft', betact, betamt
-        return betact, self.minchip_audit(betamt)
+            print 'bet audit aft', betact, betamt
+        if betamt > 0:
+            betamt = self.minchip_audit(betamt)
+            if betamt == 0:
+                betact, betamt = 'k', 0
+        return betact, betamt
             
     def print_action_txt(self, agent):
         return 'Action to %s. (Hole: %s %s, $%d left)' % (agent.name, agent.hole1, agent.hole2, agent.balance)
@@ -164,9 +168,9 @@ class Gameplay():
                         betamt = int(tempin)
         else:
             betact, betamt = betagent.responds(self.blind, self.pot, 0, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
-#        print 'opening ', betact, betamt
+        print 'opening ', betact, betamt
         betact, betamt = self.bet_audit(betagent, betact, betamt, resagent)
-#        print 'after betaudit ', betact, betamt
+        print 'after betaudit ', betact, betamt
 
         if betact == 'k':
             betagent_check = 1 
@@ -180,9 +184,9 @@ class Gameplay():
 # logic here is a bit of a mess because of using the same agent.responds .... see if can tighten it up
             betact = 'r'
             betamt = betagent.balance
-#            print 'before raiseamt audit', betact, betamt
+            print 'before raiseamt audit', betact, betamt
             betact, betamt = self.raiseamt_audit(betagent, resagent, betact, betamt)
-#            print 'after raiseamt audit', betact, betamt
+            print 'after raiseamt audit', betact, betamt
             self.bets(betagent, betamt)
         else: 
             self.bets(betagent, betamt)

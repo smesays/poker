@@ -6,8 +6,8 @@ execfile('gameplay.py')
 import sys, os, time
 import random, pickle
 
-#SIMULATE = 1
-SIMULATE = 0
+SIMULATE = 1
+#SIMULATE = 0
 VS_BOT_STYLE = None    # pick bot style to play against human, or None
 BOT_STYLE1 = None   # pick bot style 1 for bots play, or None
 BOT_STYLE2 = None   # pick bot style 2 for bots play, or None
@@ -120,7 +120,7 @@ def tournament(tourneynum):
                 
             game.play()
             elapsed_time += game.elapsed
-            print 'round elapsed %d' % int(elapsed_time/60)
+#            print 'round elapsed %d' % int(elapsed_time/60)
             game_stat_log.append((game.gamenum, game.phase, game.pot))
             tourney_log.append(game.betlog)
             yprint()
