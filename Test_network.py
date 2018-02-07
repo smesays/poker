@@ -208,7 +208,7 @@ class BlueNet_all2a(nn.Module):
 
     def __init__(self):
         super(BlueNet_all2a, self).__init__()
-        self.l1 = nn.Linear(21, 42)
+        self.l1 = nn.Linear(24, 42)
         self.l2 = nn.Linear(42, 21)
         self.l3 = nn.Linear(21, 6)
 
@@ -354,5 +354,11 @@ plt.legend()
 plt.savefig('./result/accuracy_growth.png')
 #plt.show()
 
-confumat = confusion_matrix(prediction(), train_set0.target)
-print(pd.DataFrame(confumat))
+style_list = ['Aggressive', 'Conservative' ,'High-hater', 'Random', 'All-in' ,'Multi-style']
+row_list = style_list + ['sum']
+confumat = confusion_matrix(pred_result[0], pred_result[1])
+margin_sum = np.sum(confumat, axis = 0)
+confumat = np.append(confumat, [margin_sum], axis = 0)
+confumat = np.divide(confumat.astype(np.float), margin_sum.astype(np.float))
+print('Confusion matrix of style prediction')
+pd.DataFrame(confumat, index = row_list, columns=style_list)
