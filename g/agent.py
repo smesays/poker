@@ -18,17 +18,13 @@ class Agent():
     type_prob_dict = pickle.load(pkl_file)
     pkl_file.close()
 
-    pf_table = {}
-    flop_table = {}
-    table = np.loadtxt("../table/decision_table_preflop.txt", delimiter=',') 
-    for i in range(len(table)):
-        pf_table[table[i, 0]] = table[i, 1]
-    table = np.loadtxt("../table/decision_table_flop.txt", delimiter=',') 
-    for i in range(len(table)):
-        flop_table[table[i, 0]] = table[i, 1]
-    del table
+    pkl_file = open("../table/decision_table_preflop.txt", 'rb')
+    pf_table = pickle.load(pkl_file)
+    pkl_file.close()
 
-
+    pkl_file = open("../table/decision_table_flop.txt", 'rb')
+    flop_table = pickle.load(pkl_file)
+    pkl_file.close()
 
     def __init__(self, name, buy_in, style=None):
         self.name=name
