@@ -11,8 +11,8 @@ pkl_file.close()
 
 begtime=time.time()
 
-start=1
-end=52
+start=2
+end=7
 holebeg=1
 holeend=52
 
@@ -70,11 +70,12 @@ for a in range(start,13+1): # performing first card search for 1 suit. other sui
                                         # only output every time there is an increment of 2% in probability, to cut down size
                                         if int(cumcnt*100/1081) - int(prevcnt*100/1081) >= 2:
                                             if hand5_shortrank != rl[0]:    # only store ranks that improved from the community cards
-                                                prob_list.append((rl[0],cumcnt))
+                                                prob_list.append((rl[0],rl[1]))
+#                                                prob_list.append((rl[0],cumcnt))
                                             prevcnt = cumcnt
                                     hand_imp_dictkey[hand5_shortrank] = 1
                                     hand_imp_dict[hand5_shortrank] = prob_list
-#                                    print hand_imp_dict
+                                    print hand_imp_dict
                                     # this will serially dump into separate dictionaries, and have to read them 7462 times
 #                                    pickle.dump(hand_imp_dict, output)
 output = open('hand7_prob_2pct.pkl', 'wb')

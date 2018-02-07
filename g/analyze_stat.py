@@ -21,9 +21,9 @@ winloss_stat = np.concatenate((winner_stat, loser_stat), axis=1)
 audit = winloss_stat[winloss_stat[:,0] != winloss_stat[:,3]]
 print len(audit)
 
-print 'sample winloss_stat'
-print winloss_stat[:5]
-print ' '
+#print 'sample winloss_stat'
+#print winloss_stat[:5]
+#print ' '
 
 win_cnt=np.zeros((numofstyle, numofstyle), dtype=int)
 win_prob=np.zeros((numofstyle, numofstyle), dtype=float)

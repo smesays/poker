@@ -185,11 +185,11 @@ class Agent():
             rank = [card_info[i][1] for i in range(len(card_info))]
             iden_pf = rank[1]*(10**4) + rank[0]*(10**2) + suit[1]*(10) + suit[0]
             des_prob = self.pf_table[iden_pf]
-            factor = math.exp((des_prob - 0.5)*20)*blind*5
-            max_pay = factor if des_prob != 1 else blind*5
+            factor = math.exp((des_prob - 0.5)*20)*blind*10
+            max_pay = factor if des_prob != 1 else blind*10
             max_pay = min(int(max_pay), self.balance)
 
-            if potsize < blind*10:
+            if potsize < blind*100:
 
                 if callamt <= blind*2:   
                     if factor <= blind*3:
@@ -214,9 +214,9 @@ class Agent():
             win_prob = self.eval_hand(cards[0], cards[1], cards[2], cards[3], cards[4])
             
             if win_prob < 0.58: # one pair or less
-                if potsize < blind*30:
+                if potsize < blind*150:
                     des_prob = self.flop_table[iden_f]
-                    max_pay = min(int(des_prob*blind*10), max_pay)
+                    max_pay = min(int(des_prob*blind*20), max_pay)
 
                     if max_pay == 0:
                         act, amt = ['k', 0] if callamt == 0 else ['f', 0]
@@ -265,11 +265,11 @@ class Agent():
             rank = [card_info[i][1] for i in range(len(card_info))]
             iden_pf = rank[1]*(10**4) + rank[0]*(10**2) + suit[1]*(10) + suit[0]
             des_prob = self.pf_table[iden_pf]
-            factor = math.exp((des_prob - 0.5)*30*lie)*blind*8
-            max_pay = factor if des_prob != 1 else blind*8
+            factor = math.exp((des_prob - 0.5)*30*lie)*blind*20
+            max_pay = factor if des_prob != 1 else blind*20
             max_pay = min(max_pay, self.balance)
 
-            if potsize < blind*16:
+            if potsize < blind*100:
 
                 if callamt <= max_pay:
                     if max_pay <= blind*3:
@@ -290,12 +290,12 @@ class Agent():
             win_prob = win_prob/(lie*7) if win_prob < 0.52 else win_prob
 
             if win_prob < 0.54:
-                if potsize < blind*30:
+                if potsize < blind*150:
                     des_prob = self.flop_table[iden_f]
-                    max_pay = min(des_prob*blind*8, self.balance)
+                    max_pay = min(des_prob*blind*20, self.balance)
                 else: return 'f', 0
             else:
-                max_pay = min(blind*50, self.balance)
+                max_pay = min(blind*150, self.balance)
                 max_pay = max_pay*win_prob if win_prob < 0.9 else max_pay
 
             if callamt <= max_pay:

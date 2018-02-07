@@ -124,6 +124,7 @@ class Gameplay():
         if resact == 'r':
             print "res audit2 bef", resact, resamt
             if resamt < callamt:
+                print "res audit2a bef", resact, resamt
                 resact, resamt = 'c', 0
 
             if resagent.balance == callamt:
@@ -131,8 +132,13 @@ class Gameplay():
                 resact, resamt = 'c', 0
 
             if resamt > resagent.balance - callamt:
+                print "res audit2b bef", resact, resamt
                 resamt = resagent.balance - callamt
+            elif resamt == resagent.balance or resamt == betagent.balance:
+#                print "res audit2c bef", resact, resamt
+                pass    # raise all-in
             elif resamt < self.minbet:
+                print "res audit2d bef", resact, resamt
                 resact, resamt = 'c', 0
             print "res audit2 aft", resact, resamt
         return resact, self.minchip_audit(resamt)
@@ -143,6 +149,8 @@ class Gameplay():
             if betamt > resagent.balance: # cannot bet more than opponent's balance
                 betamt = resagent.balance
             print 'bet audit aft', betact, betamt
+            if betamt < self.minbet:
+                betact, betamt = 'k', 0
         if betamt > 0:
             betamt = self.minchip_audit(betamt)
             if betamt == 0:
@@ -208,8 +216,8 @@ class Gameplay():
                     print " "*self.GAME_INDENT, '> (C)all $%d, (R)aise, (A)ll-in $%d, or (F)old? Enter c, r, a, or f:' % (callamt, min(betagent.balance, resagent.balance)),
                     betact = raw_input().lower()
                 if betact == 'r':
-                    while betamt < self.minbet:
-                        print ' '*self.GAME_INDENT, '> Enter the amount to raise (min $%d):' % callamt,
+                    while betamt < max(self.minbet, callamt):
+                        print ' '*self.GAME_INDENT, '> Enter the amount to raise (min $%d):' % max(self.minbet, callamt),
                         tempin = raw_input()
                         if tempin.isdigit():
                             betamt = int(tempin)
@@ -277,7 +285,7 @@ class Gameplay():
                 elif agent2_check == 0: # agent 2 to act
                     agent2_check = self.opening(self.agent2, self.agent1, 2)
 
-            if loop_cnt > 10:
+            if loop_cnt > 100:
                 print 'ERROR: break loop'
                 sys.exit(1)
 

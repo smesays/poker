@@ -107,6 +107,7 @@ def tournament(tourneynum):
         else:
             if PRINT_LOG == 0:
                 nprint()
+            print 'styles: %d %d' % (agent1.style, agent2.style)
             print 'Round %d Game %d with blind $%d/$%d. Minimum bet is $%d. (Min. chip $%d)' % (roundnum, gamenum, blind, blind*2, blind*2, minchip)
             if gamenum/2.0 != int(gamenum/2.0):
                 game = Gameplay(gamenum, agent1, agent2, blind, minchip, prompt)
@@ -145,8 +146,8 @@ def tournament(tourneynum):
     print game_stat_log
     print ' '
 
-    if SIMULATE and gamenum >= 3:
-        f = open("../log/agent_log20180207.txt", "a")
+    if SIMULATE:
+        f = open("../log/agent_fulllog20180207.txt", "a")
         for i in range(len(agent_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -154,7 +155,7 @@ def tournament(tourneynum):
             f.write("\n")
         f.close()
 
-        f = open("../log/gamestat_log20180207.txt", "a")
+        f = open("../log/gamestat_fulllog20180207.txt", "a")
         for i in range(len(game_stat_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -162,18 +163,35 @@ def tournament(tourneynum):
             f.write("\n")
         f.close()
 
-        f = open("../log/tourney_log20180207.txt", "a")
-        for i in range(len(tourney_log)):
-            for j in range(len(tourney_log[i])):
+        if gamenum < 3:
+            f = open("../log/agent_shortlog20180207.txt", "a")
+            for i in range(len(agent_log)):
                 f.write("%d"%tourneynum)
                 f.write(",")
-                f.write(",".join(map(lambda x: str(x), tourney_log[i][j])))
+                f.write(",".join(map(lambda x: str(x), agent_log[i])))
                 f.write("\n")
-        f.close()
+            f.close()
+        else:
+            f = open("../log/agent_log20180207.txt", "a")
+            for i in range(len(agent_log)):
+                f.write("%d"%tourneynum)
+                f.write(",")
+                f.write(",".join(map(lambda x: str(x), agent_log[i])))
+                f.write("\n")
+            f.close()
+
+            f = open("../log/tourney_log20180207.txt", "a")
+            for i in range(len(tourney_log)):
+                for j in range(len(tourney_log[i])):
+                    f.write("%d"%tourneynum)
+                    f.write(",")
+                    f.write(",".join(map(lambda x: str(x), tourney_log[i][j])))
+                    f.write("\n")
+            f.close()
 
 if __name__ == "__main__":
     if SIMULATE:  
-        for ty in range(5000):
+        for ty in range(15000):
             print 'tournament %d' % ty
             tournament(ty)
     else:
