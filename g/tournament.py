@@ -4,8 +4,7 @@ execfile('deck.py')
 execfile('agent.py') 
 execfile('gameplay.py')
 import sys, os, time
-import random
-import pickle
+import random, pickle
 
 #SIMULATE = 1
 SIMULATE = 0
@@ -24,26 +23,23 @@ def nprint(): # disable printing
 def yprint(): # enable printing
     sys.stdout = sys.__stdout__
 
-#if __name__ == "__main__":
 def tournament(tourneynum):
     BUY_IN = 20000  # standard tournament with initial buy-in $20k
     # structure of blinds follows https://www.cardplayer.com/poker-tournaments/2605-2009-nbc-national-heads-up-championship/18234
     BLIND_STRUCTURE  =[150, 200, 300, 400, 600, 1000, 1500, 2000, 3000, 4000, 5000, 8000, 10000, 15000, 20000, 30000, 40000]
     # smallest denomination of chips in each round
     MINCHIP_STRUCTURE=[25 , 25 , 25 , 25 , 100, 100 , 100 , 500 , 500 , 500 , 1000, 1000, 1000 , 1000 , 1000 , 1000 , 1000 ] 
-# simulate w/o minchip and see if results improved
-    if SIMULATE == 0:
+
+    if SIMULATE: 
+        human = 'n'
+        PRINT_LOG = 0
+#        PRINT_LOG = 1
+    else:
         print " "
         print "                                                              **************************************************************"
         print "                                                              * Welcome to the Texas No Limit Hold'em Heads-up Tournament! *"
         print "                                                              **************************************************************"
         print " "
-
-    if SIMULATE == 1: 
-        human = 'n'
-        PRINT_LOG = 0
-#        PRINT_LOG = 1
-    else:
         human =  raw_input("                                                                   > Is human playing? Enter y or n: ").lower()
         PRINT_LOG = 1
 
@@ -52,7 +48,7 @@ def tournament(tourneynum):
         quick_slow = raw_input("                                                                   > (Q)uick or (S)tandard game? Enter q or s: ")
         quick_slow = quick_slow.lower()
         if quick_slow == 'q':
-            BUY_IN = 4000        
+            BUY_IN = 5000
         human_name = raw_input("                                                                   > Enter your name: ")
         print '                                                                   Hello %s' % human_name
         print "                                                                   Let's see who starts first." 
@@ -78,21 +74,27 @@ def tournament(tourneynum):
         agent2 = Agent("Bot 2", BUY_IN, BOT_STYLE2)
     
     gamenum = 0
-    roundnum = 0
+    roundnum = 1
+    blind = BLIND_STRUCTURE[0]
+    minchip = MINCHIP_STRUCTURE[0]
+    speedup_fct = 1
+    elapsed_time = 0        # track elapsed time of each game for blind structure
 
     tourney_log = []
-    tourney2_log = []
     agent_log = []
     game_stat_log = []
     while ((agent1.balance > 0) & (agent2.balance > 0)):
         gamenum += 1
-        game_per_round = 20
         if quick_slow == 'q':
-            game_per_round = 4
-        if (gamenum - 1) % game_per_round == 0: # alternatively, add each move by seconds, and next round after 30 minutes
+            speedup_fct = 4
+        if elapsed_time * speedup_fct > 30*60:  # go to next round with different blind after elapsed time is over 30 minutes
             roundnum += 1
-        blind = BLIND_STRUCTURE[min(roundnum-1,16)] # 17 rounds, after that, blind stays at 40k
-        minchip = MINCHIP_STRUCTURE[min(roundnum-1,16)]
+            blind = BLIND_STRUCTURE[min(roundnum-1,16)] # 17 rounds, after that, blind stays at 40k
+            minchip = MINCHIP_STRUCTURE[min(roundnum-1,16)]
+            agent1.balance = int(agent1.balance / minchip) * minchip
+            agent2.balance = int(agent2.balance / minchip) * minchip
+            elapsed_time = 0    # reset for a new 30 minutes
+
         if (gamenum % 2 != 0) & (agent1.balance < blind*2) |\
            (gamenum % 2 == 0) & (agent1.balance < blind*2): # for simplicity, for now check against big blind
             print '                                                           Tournament is over!', agent1.name, 'is bankrupt and', agent2.name, 'wins!'
@@ -105,7 +107,7 @@ def tournament(tourneynum):
         else:
             if PRINT_LOG == 0:
                 nprint()
-            print 'Round %d Game %d with blind $%d/$%d. Minimum bet is $%d.' % (roundnum, gamenum, blind, blind*2, blind*2)
+            print 'Round %d Game %d with blind $%d/$%d. Minimum bet is $%d. (Min. chip $%d)' % (roundnum, gamenum, blind, blind*2, blind*2, minchip)
             if gamenum/2.0 != int(gamenum/2.0):
                 game = Gameplay(gamenum, agent1, agent2, blind, minchip, prompt)
             else:
@@ -117,9 +119,10 @@ def tournament(tourneynum):
                     game = Gameplay(gamenum, agent2, agent1, blind, minchip, 1)
                 
             game.play()
-            game_stat_log.append((game.phase, game.pot))
+            elapsed_time += game.elapsed
+            print 'round elapsed %d' % int(elapsed_time/60)
+            game_stat_log.append((game.gamenum, game.phase, game.pot))
             tourney_log.append(game.betlog)
-            tourney2_log.append(game.betlog2)
             yprint()
         if human == 'y':
             time.sleep(1)
@@ -139,11 +142,11 @@ def tournament(tourneynum):
         print ' '
 
     print agent_log
+    print game_stat_log
     print ' '
-#    print tourney_log
 
-    if SIMULATE:
-        f = open("../log/agent_log20180201.txt", "a")
+    if SIMULATE and gamenum >= 3:
+        f = open("../log/agent_log20180207.txt", "a")
         for i in range(len(agent_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -151,7 +154,15 @@ def tournament(tourneynum):
             f.write("\n")
         f.close()
 
-        f = open("../log/tourney_log20180201.txt", "a")
+        f = open("../log/gamestat_log20180207.txt", "a")
+        for i in range(len(game_stat_log)):
+            f.write("%d"%tourneynum)
+            f.write(",")
+            f.write(",".join(map(lambda x: str(x), game_stat_log[i])))
+            f.write("\n")
+        f.close()
+
+        f = open("../log/tourney_log20180207.txt", "a")
         for i in range(len(tourney_log)):
             for j in range(len(tourney_log[i])):
                 f.write("%d"%tourneynum)
@@ -160,19 +171,10 @@ def tournament(tourneynum):
                 f.write("\n")
         f.close()
 
-        f = open("../log/tourney2_log20180201.txt", "a")
-        for i in range(len(tourney2_log)):
-            for j in range(len(tourney2_log[i])):
-                f.write("%d"%tourneynum)
-                f.write(",")
-                f.write(",".join(map(lambda x: str(x), tourney2_log[i][j])))
-                f.write("\n")
-        f.close()
-
-
 if __name__ == "__main__":
     if SIMULATE:  
         for ty in range(5000):
+            print 'tournament %d' % ty
             tournament(ty)
-    if SIMULATE == 0:
+    else:
         tournament(1)

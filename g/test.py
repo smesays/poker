@@ -2,9 +2,10 @@
 #execfile("card.py")
 #a.append(tuple([2, 3, ]+list(dodo())+list(dodo())+list(dodo()) ))
 
-betact, betamt = 'c', 0
-
-print betact, betamt
+a=19294.2883994835
+print '%6.4f' % a
+print '%10.4f' % a
+print '%12.4f' % a
 
 #hand1=Hand(Card(1),Card(14),Card(40),Card(13),Card(51))
 

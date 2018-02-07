@@ -134,10 +134,10 @@ class PowerTable:
 decisiontable = PowerTable()
 
 output = open('decision_table_preflop.txt', 'wb') 
-pickle.dump(decisiontable.pf_score, output) 
+pickle.dump(decisiontable.pf_score, output, protocol=pickle.HIGHEST_PROTOCOL) 
 output.close()
 
 output = open('decision_table_flop.txt', 'wb') 
-pickle.dump(decisiontable.flop_score, output) 
+pickle.dump(decisiontable.flop_score, output, protocol=pickle.HIGHEST_PROTOCOL) 
 output.close()
 
