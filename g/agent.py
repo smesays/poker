@@ -176,19 +176,20 @@ class Agent():
 
     def style_feign(self, blind, potsize, callamt, *args):
 
+        status_list = [card for card in list(args) if card != None]
         cards = list(args)
-        status = 5 - len(cards) # 5 pre-flop 2 flop 1 turn 0 river
+        status = 5 - len(status_list) # 5 pre-flop 2 flop 1 turn 0 river
         max_pay = self.balance
         act , amt = ['f', 0]
 
         if status == 5: 
-            card_info = [[card.getSuit(), card.getRank()] for card in cards+[self.hole1]+[self.hole2]]
+            card_info = [[card.getSuit(), card.getRank()] for card in status_list+[self.hole1]+[self.hole2]]
             card_info.sort(key = lambda i: (i[1], i[0]), reverse = False)
             suit = [card_info[i][0] for i in range(len(card_info))]
             rank = [card_info[i][1] for i in range(len(card_info))]
             iden_pf = rank[1]*(10**4) + rank[0]*(10**2) + suit[1]*(10) + suit[0]
-            des_prob = pf_table[iden_pf]
-            factor = math.exp((des+prob - 0.5)*20)*blind*5
+            des_prob = self.pf_table[iden_pf]
+            factor = math.exp((des_prob - 0.5)*20)*blind*5
             max_pay = factor if des_prob != 1 else blind*5
             max_pay = min(int(max_pay), self.balance)
 
@@ -207,7 +208,8 @@ class Agent():
             return 'f', 0
 
         elif status == 2:
-            card_info = [[card.getSuit(), card.getRank()] for card in cards+[self.hole1]+[self.hole2]]
+            win_prob = self.eval_hand(cards[0] , cards[1], cards[2], None, None)
+            card_info = [[card.getSuit(), card.getRank()] for card in status_list+[self.hole1]+[self.hole2]]
             card_info.sort(key = lambda i: (i[1], i[0]), reverse = False)
             suit = [card_info[i][0] for i in range(len(card_info))]
             rank = [card_info[i][1] for i in range(len(card_info))]
@@ -217,7 +219,7 @@ class Agent():
             
             if win_prob < 0.58: # one pair or less
                 if potsize < blind*30:
-                    des_prob = flop_table[iden_f]
+                    des_prob = self.flop_table[iden_f]
                     max_pay = min(int(des_prob*blind*10), max_pay)
 
                     if max_pay == 0:
@@ -251,22 +253,23 @@ class Agent():
 
     def style_bluff(self, blind, potsize, callamt, *args):
 
+        status_list = [card for card in list(args) if card != None]
         cards = list(args)
-        status = 5 - len(cards) # 5 pre-flop 2 flop 1 turn 0 river
+        status = 5 - len(status_list) # 5 pre-flop 2 flop 1 turn 0 river
         max_pay = self.balance
-        win_prob = self.eval_hand(cards[0], cards[1], cards[2], cards[3], cards[4])
-        lie = 0.1 if random.random > 0.4 and win_prob < 0.52 else 1.0
         call_ratio = callamt * 1.0 / (potsize - callamt)
         act, amt = ['f', 0]
 
         if status == 5: 
-            card_info = [[card.getSuit(), card.getRank()] for card in cards+[self.hole1]+[self.hole2]]
+            win_prob = self.eval_hand(None, None, None, None, None)
+            lie = 0.1 if random.random > 0.4 and win_prob < 0.52 else 1.0
+            card_info = [[card.getSuit(), card.getRank()] for card in status_list+[self.hole1]+[self.hole2]]
             card_info.sort(key = lambda i: (i[1], i[0]), reverse = False)
             suit = [card_info[i][0] for i in range(len(card_info))]
             rank = [card_info[i][1] for i in range(len(card_info))]
             iden_pf = rank[1]*(10**4) + rank[0]*(10**2) + suit[1]*(10) + suit[0]
-            des_prob = pf_table[iden_pf]
-            factor = math.exp((des+prob - 0.5)*30*lie)*blind*8
+            des_prob = self.pf_table[iden_pf]
+            factor = math.exp((des_prob - 0.5)*30*lie)*blind*8
             max_pay = factor if des_prob != 1 else blind*8
             max_pay = min(max_pay, self.balance)
 
@@ -280,17 +283,19 @@ class Agent():
                 return act, amt
 
         elif status == 2:
-            card_info = [[card.getSuit(), card.getRank()] for card in cards+[self.hole1]+[self.hole2]]
+            card_info = [[card.getSuit(), card.getRank()] for card in status_list+[self.hole1]+[self.hole2]]
             card_info.sort(key = lambda i: (i[1], i[0]), reverse = False)
             suit = [card_info[i][0] for i in range(len(card_info))]
             rank = [card_info[i][1] for i in range(len(card_info))]
             iden_f = suit[4]*(10**4) + suit[3]*(10**3) + suit[2]*(10**2) + suit[1]*(10) + suit[0]
             iden_f += rank[4]*(10**13) + rank[3]*(10**11) + rank[2]*(10**9) + rank[1]*(10**7) + rank[0]*(10**5)
+            win_prob = self.eval_hand(cards[0] , cards[1], cards[2], None , None)
+            lie = 0.1 if random.random > 0.4 and win_prob < 0.52 else 1.0
             win_prob = win_prob/(lie*7) if win_prob < 0.52 else win_prob
 
             if win_prob < 0.54:
                 if potsize < blind*30:
-                    des_prob = flop_table[iden_f]
+                    des_prob = self.flop_table[iden_f]
                     max_pay = min(des_prob*blind*8, self.balance)
                 else: return 'f', 0
             else:
@@ -306,6 +311,8 @@ class Agent():
             return 'f', 0
 
         else:
+            win_prob = self.eval_hand(cards[0] , cards[1], cards[2], cards[3] , cards[4])
+            lie = 0.1 if random.random > 0.4 and win_prob < 0.52 else 1.0
             win_prob = win_prob/(lie*9) if win_prob < 0.5 else win_prob
             max_pay = int(math.exp((win_prob - 0.9)*4)*self.balance) if win_prob < 0.9 else self.balance
 
