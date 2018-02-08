@@ -14,11 +14,11 @@ from sklearn.metrics import confusion_matrix
 import pandas as pd
 
 # Global Parameters:
-BATCH_SIZE = 128
-IS_CUDA    = True
+BATCH_SIZE = 2048
+IS_CUDA    = False
 LR         = 0.01
 MOMENTUM   = 1e-6
-EPOCHS      = 50
+EPOCHS      = 40
 LOG_IN     = 1000
 # Load Dataset
 def load_dataset(path, mask):
@@ -51,11 +51,11 @@ def load_dataset(path, mask):
     #target = target[ game_id_mask]
     #act = act[game_id_mask]
     data = np.delete(data, 0, 1)
-    
+    '''
     # Take minimum of classes and phases
     group_mask = {}
     min_to_take = []
-    for g in range(1, 7): 
+    for g in range(1, 9): 
         group_mask[g] = {}
         for sg in range(1, 5):
             group_mask[g][sg]=[i for i in range(len(target)) if target[i] == int(g) and data[i, 0] == sg]
@@ -66,16 +66,20 @@ def load_dataset(path, mask):
     print('The number of data to be taken from each class = {}'.format(min_take*4))
     
     total_mask = group_mask[1][1][0:min_take] + group_mask[1][2][0:min_take] + group_mask[1][3][0:min_take] + group_mask[1][4][0:min_take]
-    for g in range(2, 7):
+    for g in range(2, 9):
          total_mask = total_mask + group_mask[g][1][0:min_take] + group_mask[g][2][0:min_take] + group_mask[g][3][0:min_take] + group_mask[g][4][0:min_take]
-    
+    '''
+    total_mask = [i for i in range(len(target)) if target[i] in [1, 2, 3 , 5, 8]]
     # Filter data with mask
     data = data[total_mask, :]
     target = target[total_mask]
     act = act[total_mask]
-    
+    map_mask1 = [i for i in range(len(target)) if target[i] == 8]
+    map_mask2 = [i for i in range(len(target)) if target[i] == 5]
+    target[map_mask1] = 5
+    target[map_mask2] = 4
     # Change string to int
-    act_map = {'f':0, 'c':1, 'k':1, 'b':2, 'r':2}
+    act_map = {'f':0, 'c':1, 'k':2, 'b':3, 'r':4}
     for i in range(len(act)):
         act[i] = act_map[act[i]]
     data = np.insert(data, 0, act, axis = 1)
@@ -92,7 +96,7 @@ def load_dataset(path, mask):
     
     # Extend categorical variables
     phase_mat = np.zeros((len(data), 4))
-    act_mat = np.zeros((len(data), 3))
+    act_mat = np.zeros((len(data), 5))
     for i in range(len(phase_mat)):
         idx = int(data[i, 1]-1)
         phase_mat[i,idx] = 1
@@ -120,25 +124,27 @@ class PokerDataset(Dataset):
         return self.data[index,:], self.target[index] 
     def __len__(self):
         return self.data.shape[0]
+    def __inout__(self):
+        return self.data.shape[1], len(set(self.target))
 
-train_set0 = PokerDataset('./log/tourney_log20180201.txt', mask = 0)
-#train_set2 = PokerDataset('./log/tourney2_log20180201.txt', mask = 1)
+train_set0 = PokerDataset('./log/tourney_log20180207.txt.gz', mask = 0)
+test_set0 = PokerDataset('./log/tourney_log20180208.txt.gz', mask = 0)
 train_loader0 = DataLoader(train_set0, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
-#train_loader2 = DataLoader(train_set2, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+test_loader0 = DataLoader(test_set0, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
 
 # Network Architecture of different configuration:
 
 class BlueNet_all6a(nn.Module):
 
-    def __init__(self):
+    def __init__(self, num_in, num_out):
         super(BlueNet_all6a, self).__init__()
-        self.l1 = nn.Linear(24, 52)
-        self.l2 = nn.Linear(52, 104)
-        self.l3 = nn.Linear(104, 104)
-        self.l4 = nn.Linear(104, 52)
-        self.l5 = nn.Linear(52, 26)
-        self.l6 = nn.Linear(26, 13)
-        self.l7 = nn.Linear(13, 6)
+        self.l1 = nn.Linear(num_in, num_in*2)
+        self.l2 = nn.Linear(num_in*2, num_in*4)
+        self.l3 = nn.Linear(num_in*4, num_in*4)
+        self.l4 = nn.Linear(num_in*4, num_in*2)
+        self.l5 = nn.Linear(num_in*2, num_in)
+        self.l6 = nn.Linear(num_in, num_out*2)
+        self.l7 = nn.Linear(num_out*2, num_out)
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -150,15 +156,15 @@ class BlueNet_all6a(nn.Module):
 
 class BlueNet_all6b(nn.Module):
 
-    def __init__(self):
+    def __init__(self, num_in, num_out):
         super(BlueNet_all6b, self).__init__()
-        self.l1 = nn.Linear(21, 80)
-        self.l2 = nn.Linear(80, 240)
-        self.l3 = nn.Linear(240, 480)
-        self.l4 = nn.Linear(480, 240)
-        self.l5 = nn.Linear(240, 80)
-        self.l6 = nn.Linear(80, 20)
-        self.l7 = nn.Linear(20, 6)
+        self.l1 = nn.Linear(num_in, num_in*2)
+        self.l2 = nn.Linear(num_in*2, num_in*3)
+        self.l3 = nn.Linear(num_in*3, num_in*3)
+        self.l4 = nn.Linear(num_in*3, num_in*3)
+        self.l5 = nn.Linear(num_in*3, num_in)
+        self.l6 = nn.Linear(num_in, num_out*2)
+        self.l7 = nn.Linear(num_out*2, num_out)
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -170,13 +176,13 @@ class BlueNet_all6b(nn.Module):
     
 class BlueNet_all4a(nn.Module):
 
-    def __init__(self):
+    def __init__(self, num_in, num_out):
         super(BlueNet_all4a, self).__init__()
-        self.l1 = nn.Linear(24, 42)
-        self.l2 = nn.Linear(42, 84)
-        self.l3 = nn.Linear(84, 42)
-        self.l4 = nn.Linear(42, 21)
-        self.l5 = nn.Linear(21, 6)
+        self.l1 = nn.Linear(num_in, num_in*2)
+        self.l2 = nn.Linear(num_in*2, num_in*4)
+        self.l3 = nn.Linear(num_in*4, num_in*2)
+        self.l4 = nn.Linear(num_in*2, num_out*2)
+        self.l5 = nn.Linear(num_out*2, num_out)
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -188,13 +194,13 @@ class BlueNet_all4a(nn.Module):
 
 class BlueNet_all4b(nn.Module):
 
-    def __init__(self):
+    def __init__(self, num_in, num_out):
         super(BlueNet_all4b, self).__init__()
-        self.l1 = nn.Linear(21, 60)
-        self.l2 = nn.Linear(60, 120)
-        self.l3 = nn.Linear(120, 60)
-        self.l4 = nn.Linear(60, 20)
-        self.l5 = nn.Linear(20, 6)
+        self.l1 = nn.Linear(num_in, num_in*2)
+        self.l2 = nn.Linear(num_in*2, num_in*3)
+        self.l3 = nn.Linear(num_in*3, num_in*2)
+        self.l4 = nn.Linear(num_in*2, num_out*3)
+        self.l5 = nn.Linear(num_out*3, num_out)
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -206,11 +212,17 @@ class BlueNet_all4b(nn.Module):
     
 class BlueNet_all2a(nn.Module):
 
-    def __init__(self):
+    def __init__(self, num_in, num_out):
         super(BlueNet_all2a, self).__init__()
+<<<<<<< HEAD
+        self.l1 = nn.Linear(num_in, num_in*2)
+        self.l2 = nn.Linear(num_in*2, num_out*2)
+        self.l3 = nn.Linear(num_out*2, num_out)
+=======
         self.l1 = nn.Linear(24, 42)
         self.l2 = nn.Linear(42, 21)
         self.l3 = nn.Linear(21, 6)
+>>>>>>> a1490cdc14f26bcaa983d83284ad3491670ccae9
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -220,42 +232,31 @@ class BlueNet_all2a(nn.Module):
         out_x = self.softmax(self.l3(self.relu((self.l2(fc1)))))
         return out_x
 
-class BlueNet_all2b(nn.Module):
+class BlueNet_all7(nn.Module):
 
-    def __init__(self):
-        super(BlueNet_all2b, self).__init__()
-        self.l1 = nn.Linear(21, 60)
-        self.l2 = nn.Linear(60, 40)
-        self.l3 = nn.Linear(40, 6)
-
-        self.relu = nn.ReLU()
-        self.softmax = nn.Softmax()
-
-    def forward(self, x):
-        fc1 = F.relu((self.l1(x)))
-        out_x = self.softmax(self.l3(self.relu((self.l2(fc1)))))
-        return out_x
-
-class BlueNet_prob(nn.Module):
-
-    def __init__(self):
-        super(BlueNet_prob, self).__init__()
-        self.l1 = nn.Linear(8, 16)
-        self.l2 = nn.Linear(16, 32)
-        self.l3 = nn.Linear(32, 16)
-        self.l4 = nn.Linear(16, 6)
+    def __init__(self, num_in, num_out):
+        super(BlueNet_all7, self).__init__()
+        self.l1 = nn.Linear(num_in, num_in*2)
+        self.l2 = nn.Linear(num_in*2, num_in*4)
+        self.l3 = nn.Linear(num_in*4, num_in*8)
+        self.l4 = nn.Linear(num_in*8, num_in*4)
+        self.l5 = nn.Linear(num_in*4, num_in*2)
+        self.l6 = nn.Linear(num_in*2, num_out*4)
+        self.l7 = nn.Linear(num_out*4, num_out*2)
+        self.l8 = nn.Linear(num_out*2, num_out)
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
 
     def forward(self, x):
-        fc1 = F.relu(self.l2(self.relu((self.l1(x)))))
-        out_x = self.softmax(self.l4(self.relu((self.l3(fc1)))))
+        fc1 = F.relu(self.l3(self.l2(self.l1(x))))
+        out_x = self.softmax(self.l8(self.l7(self.l6(self.l5(self.l4(fc1))))))
         return out_x
 
 # Model Selection
 #models_sel= [BlueNet_all6a(), BlueNet_all4a(), BlueNet_all2a()]
-models_sel= [BlueNet_all6a(), BlueNet_all4a()]
+num_in, num_out = train_set0.__inout__()
+models_sel= [BlueNet_all7(num_in, num_out), BlueNet_all6a(num_in, num_out), BlueNet_all6b(num_in, num_out), BlueNet_all4a(num_in, num_out), BlueNet_all4b(num_in, num_out), BlueNet_all2a(num_in, num_out)]
 best_model = 0
 best_acc = 0
 # Visualization of training curve
@@ -312,8 +313,10 @@ def train(epoch, best_acc):
 # define prediction
 
 def prediction():
+    best_model.eval()
     prediction_list = []
-    for batch_x, _ in train_loader0:
+    label_list = []
+    for batch_x, y in test_loader0:
         batch_x = batch_x.type(torch.FloatTensor)
         if IS_CUDA:
             batch_x = batch_x.cuda()
@@ -324,7 +327,8 @@ def prediction():
         predict = predict.cpu().data.numpy().squeeze()
         
         prediction_list.append(predict)
-    return np.concatenate(prediction_list)
+        label_list.append(y)
+    return np.concatenate(prediction_list), np.concatenate(label_list)
 
 for model in models_sel:
 
@@ -347,12 +351,20 @@ for model in models_sel:
 
     training_curve.append(model_tc) 
 
-curve_name = ['6a', '4a', '2a']
+curve_name = ['7', '6a', '6b', '4a', '4b', '2a']
 for i in range(len(training_curve)):
     plt.plot(range(EPOCHS), training_curve[i], label = 'Model{}'.format(curve_name[i]))
 plt.legend()
 plt.savefig('./result/accuracy_growth.png')
 #plt.show()
+<<<<<<< HEAD
+pred_result = prediction()
+confumat = confusion_matrix(pred_result[0],pred_result[1])
+margin_sum = np.sum(confumat, axis = 0)
+confumat = np.append(confumat,[margin_sum], axis = 0) 
+confumat = np.divide(confumat.astype(np.float), margin_sum.astype(np.float))
+print(pd.DataFrame(confumat))
+=======
 
 style_list = ['Aggressive', 'Conservative' ,'High-hater', 'Random', 'All-in' ,'Multi-style']
 row_list = style_list + ['sum']
@@ -362,3 +374,4 @@ confumat = np.append(confumat, [margin_sum], axis = 0)
 confumat = np.divide(confumat.astype(np.float), margin_sum.astype(np.float))
 print('Confusion matrix of style prediction')
 pd.DataFrame(confumat, index = row_list, columns=style_list)
+>>>>>>> a1490cdc14f26bcaa983d83284ad3491670ccae9
