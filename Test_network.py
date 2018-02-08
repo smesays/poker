@@ -18,7 +18,7 @@ BATCH_SIZE = 2048
 IS_CUDA    = False
 LR         = 0.01
 MOMENTUM   = 1e-6
-EPOCHS      = 40
+EPOCHS      = 3
 LOG_IN     = 1000
 # Load Dataset
 def load_dataset(path, mask):
@@ -359,4 +359,4 @@ margin_sum = np.sum(confumat, axis = 0)
 confumat = np.append(confumat, [margin_sum], axis = 0)
 confumat = np.divide(confumat.astype(np.float), margin_sum.astype(np.float))
 print('Confusion matrix of style prediction')
-pd.DataFrame(confumat, index = row_list, columns=style_list)
+print(pd.DataFrame(confumat, index = row_list, columns=style_list))
