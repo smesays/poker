@@ -1,8 +1,8 @@
 import numpy as np
 
-agent_log = np.genfromtxt('../log/agent_log20180207.txt', delimiter=',', usecols = [0,2,3])
+agent_log = np.genfromtxt('../log/agent_log20180207.txt', delimiter=',', usecols = [0,2,3], dtype=int)
 # [tourneynum, style, 1/-1]
-
+print agent_log
 agent_stat_data = agent_log[:,1:]
 #print agent_stat_data
 
@@ -31,6 +31,7 @@ tourney_cnt=np.zeros((numofstyle, numofstyle), dtype=int)
 for i in range(len(winloss_stat)):
     style1=winloss_stat[i][1]-1
     style2=winloss_stat[i][4]-1
+    print style1, style2
     if style1 > style2:
         tourney_cnt[style2][style1] += 1
     else:
