@@ -18,7 +18,7 @@ BATCH_SIZE = 2048
 IS_CUDA    = False
 LR         = 0.01
 MOMENTUM   = 1e-6
-EPOCHS      = 3
+EPOCHS      = 20
 LOG_IN     = 1000
 # Load Dataset
 def load_dataset(path, mask):

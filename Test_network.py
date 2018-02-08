@@ -18,7 +18,7 @@ BATCH_SIZE = 2048
 IS_CUDA    = False
 LR         = 0.01
 MOMENTUM   = 1e-6
-EPOCHS      = 3
+EPOCHS      = 15
 LOG_IN     = 1000
 # Load Dataset
 def load_dataset(path, mask):
@@ -345,7 +345,7 @@ for model in models_sel:
 
     training_curve.append(model_tc) 
 
-curve_name = ['7', '6a', '6b', '4a', '4b', '2a']
+curve_name = ['7', '6a', '6b', '4a', '4b', '2']
 for i in range(len(training_curve)):
     plt.plot(range(EPOCHS), training_curve[i], label = 'Model{}'.format(curve_name[i]))
 plt.legend()
