@@ -214,15 +214,9 @@ class BlueNet_all2a(nn.Module):
 
     def __init__(self, num_in, num_out):
         super(BlueNet_all2a, self).__init__()
-<<<<<<< HEAD
         self.l1 = nn.Linear(num_in, num_in*2)
         self.l2 = nn.Linear(num_in*2, num_out*2)
         self.l3 = nn.Linear(num_out*2, num_out)
-=======
-        self.l1 = nn.Linear(24, 42)
-        self.l2 = nn.Linear(42, 21)
-        self.l3 = nn.Linear(21, 6)
->>>>>>> a1490cdc14f26bcaa983d83284ad3491670ccae9
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax()
@@ -357,16 +351,8 @@ for i in range(len(training_curve)):
 plt.legend()
 plt.savefig('./result/accuracy_growth.png')
 #plt.show()
-<<<<<<< HEAD
 pred_result = prediction()
-confumat = confusion_matrix(pred_result[0],pred_result[1])
-margin_sum = np.sum(confumat, axis = 0)
-confumat = np.append(confumat,[margin_sum], axis = 0) 
-confumat = np.divide(confumat.astype(np.float), margin_sum.astype(np.float))
-print(pd.DataFrame(confumat))
-=======
-
-style_list = ['Aggressive', 'Conservative' ,'High-hater', 'Random', 'All-in' ,'Multi-style']
+style_list = ['Aggressive', 'Conservative' ,'High-hater', 'All-in' ,'Bluff']
 row_list = style_list + ['sum']
 confumat = confusion_matrix(pred_result[0], pred_result[1])
 margin_sum = np.sum(confumat, axis = 0)
@@ -374,4 +360,3 @@ confumat = np.append(confumat, [margin_sum], axis = 0)
 confumat = np.divide(confumat.astype(np.float), margin_sum.astype(np.float))
 print('Confusion matrix of style prediction')
 pd.DataFrame(confumat, index = row_list, columns=style_list)
->>>>>>> a1490cdc14f26bcaa983d83284ad3491670ccae9
