@@ -147,7 +147,7 @@ def tournament(tourneynum):
     print ' '
 
     if SIMULATE:
-        f = open("../log/agent_fulllog20180207.txt", "a")
+        f = open("../log/agent_fulllog20180208.txt", "a")
         for i in range(len(agent_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -155,7 +155,7 @@ def tournament(tourneynum):
             f.write("\n")
         f.close()
 
-        f = open("../log/gamestat_fulllog20180207.txt", "a")
+        f = open("../log/gamestat_fulllog20180208.txt", "a")
         for i in range(len(game_stat_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -164,7 +164,7 @@ def tournament(tourneynum):
         f.close()
 
         if gamenum < 3:
-            f = open("../log/agent_shortlog20180207.txt", "a")
+            f = open("../log/agent_shortlog20180208.txt", "a")
             for i in range(len(agent_log)):
                 f.write("%d"%tourneynum)
                 f.write(",")
@@ -172,7 +172,7 @@ def tournament(tourneynum):
                 f.write("\n")
             f.close()
         else:
-            f = open("../log/agent_log20180207.txt", "a")
+            f = open("../log/agent_log20180208.txt", "a")
             for i in range(len(agent_log)):
                 f.write("%d"%tourneynum)
                 f.write(",")
@@ -180,7 +180,7 @@ def tournament(tourneynum):
                 f.write("\n")
             f.close()
 
-            f = open("../log/tourney_log20180207.txt", "a")
+            f = open("../log/tourney_log20180208.txt", "a")
             for i in range(len(tourney_log)):
                 for j in range(len(tourney_log[i])):
                     f.write("%d"%tourneynum)
@@ -191,7 +191,7 @@ def tournament(tourneynum):
 
 if __name__ == "__main__":
     if SIMULATE:  
-        for ty in range(15000):
+        for ty in range(10000):
             print 'tournament %d' % ty
             tournament(ty)
     else:
