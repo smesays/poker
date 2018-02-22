@@ -1,4 +1,6 @@
-from numpy import mod as mod 
+# Code      : card.py
+# Written by: LIU, Jiun Ee (G)
+# Purpose   : This class is used to represent a single card in a deck of cards
 
 class Card(object):
     ''' Values of card attribute
@@ -27,7 +29,7 @@ class Card(object):
             return 13
         elif self.card in (1,14,27,40):
             return 14
-        return mod(self.card,13)
+        return self.card % 13
         
     def show(self):
         return self.map_rank[self.getRank()] + self.map_suit[self.getSuit()]
