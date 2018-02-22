@@ -6,8 +6,8 @@ execfile('gameplay.py')
 import sys, os, time
 import random, pickle
 
-#SIMULATE = 1
-SIMULATE = 0
+SIMULATE = 1
+#SIMULATE = 0
 VS_BOT_STYLE = None    # pick bot style to play against human, or None
 BOT_STYLE1 = None   # pick bot style 1 for bots play, or None
 BOT_STYLE2 = None   # pick bot style 2 for bots play, or None
@@ -148,8 +148,8 @@ def tournament(tourneynum):
 #    print game_stat_log
     print ' '
 
-    if SIMULATE==0:
-        f = open("../log/agent_fulllog20180209.txt", "a")
+    if SIMULATE:
+        f = open("../log/agent_fulllog20180222.txt", "a")
         for i in range(len(agent_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -157,7 +157,7 @@ def tournament(tourneynum):
             f.write("\n")
         f.close()
 
-        f = open("../log/gamestat_fulllog20180209.txt", "a")
+        f = open("../log/gamestat_fulllog20180222.txt", "a")
         for i in range(len(game_stat_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -166,7 +166,7 @@ def tournament(tourneynum):
         f.close()
 
         if gamenum < 3:
-            f = open("../log/agent_shortlog20180209.txt", "a")
+            f = open("../log/agent_shortlog20180222.txt", "a")
             for i in range(len(agent_log)):
                 f.write("%d"%tourneynum)
                 f.write(",")
@@ -174,7 +174,7 @@ def tournament(tourneynum):
                 f.write("\n")
             f.close()
         else:
-            f = open("../log/agent_log20180209.txt", "a")
+            f = open("../log/agent_log20180222.txt", "a")
             for i in range(len(agent_log)):
                 f.write("%d"%tourneynum)
                 f.write(",")
@@ -182,7 +182,7 @@ def tournament(tourneynum):
                 f.write("\n")
             f.close()
 
-            f = open("../log/tourney_log20180209.txt", "a")
+            f = open("../log/tourney_log20180222.txt", "a")
             for i in range(len(tourney_log)):
                 for j in range(len(tourney_log[i])):
                     f.write("%d"%tourneynum)
@@ -193,7 +193,7 @@ def tournament(tourneynum):
 
 if __name__ == "__main__":
     if SIMULATE:  
-        for ty in range(10000):
+        for ty in range(15000):
             print 'tournament %d' % ty
             tournament(ty)
     else:

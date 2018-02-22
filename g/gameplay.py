@@ -4,12 +4,10 @@ import pickle
 class Gameplay():
     # when initializing, agents should be ordered so they go first alternately
     GAME_INDENT = 66    # number of spaces to indent the game messages
-#dup    # load dictionary to be used for all agents
-    '''
+
     pkl_file = open('type_prob_dict.pkl', 'rb')
     type_prob_dict = pickle.load(pkl_file)
     pkl_file.close()
-    '''
 
     def __init__(self, gamenum, agent1, agent2, blind, minchip, prompt):
         '''
@@ -56,8 +54,7 @@ class Gameplay():
 
     def log_hole_cards(self, agent):
         return tuple(list(self.log_card(agent.hole1)) + list(self.log_card(agent.hole2)))
-#dup
-    '''
+
     def eval_hand(self, agent, card1=None, card2=None, card3=None, card4=None, card5=None):
         if card1 is None:
             if agent.hole1.getSuit() == agent.hole2.getSuit():
@@ -69,7 +66,6 @@ class Gameplay():
         else:
             hand=Hand(agent.hole1, agent.hole2, card1, card2, card3, card4, card5)
             return self.type_prob_dict[hand.hand_type]
-    '''
 
     def minchip_audit(self, amt):
         return int(amt / self.minchip) * self.minchip
@@ -99,8 +95,8 @@ class Gameplay():
             self.elapsed += 10
         if self.phase != 0:
             self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, agent.name, agent.style, betact, amt+callamt, self.blind, agent.balance, self.pot] + \
-                                      list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) ))#+ \
-#                                      self.eval_hand(agent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
+                                     list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) + \
+                                     [self.eval_hand(agent, self.flop1, self.flop2, self.flop3, self.turn, self.river)] ))
 
 # how to figure out when to reveal hole cards to the log?
     def raiseamt_audit(self, betagent, resagent, betact, raiseamt):
@@ -186,8 +182,8 @@ class Gameplay():
             self.elapsed += 10
             if self.phase != 0:
                 self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, betagent.name, betagent.style, betact, betamt, self.blind, betagent.balance, self.pot] + \
-                                         list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) ))#+ \
-#                                         self.eval_hand(betagent, self.flop1, self.flop2, self.flop3, self.turn, self.river) ))
+                                         list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) + \
+                                         [self.eval_hand(betagent, self.flop1, self.flop2, self.flop3, self.turn, self.river)] ))
         elif betact == 'a':
 # logic here is a bit of a mess because of using the same agent.responds .... see if can tighten it up
             betact = 'r'
@@ -255,8 +251,8 @@ class Gameplay():
             self.elapsed += 10
             if self.phase != 0:
                 self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, resagent.name, resagent.style, betact, callamt, self.blind, resagent.balance, self.pot] + \
-                                         list(self.log_comm_cards()) + list(self.log_hole_cards(resagent)) ))# + \
-#                                         self.eval_hand(resagent, self.flop1, self.flop2, self.flop3, self.turn, self.river)) ))
+                                         list(self.log_comm_cards()) + list(self.log_hole_cards(resagent))  + \
+                                         [self.eval_hand(resagent, self.flop1, self.flop2, self.flop3, self.turn, self.river)] ))
 
         return checkflag, checkflag, foldflag
 
