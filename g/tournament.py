@@ -1,3 +1,15 @@
+# Code      : tournament.py
+# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
+# Purpose   : This is the main program that simulate the entire Heads-up No-limit Texas Hold'em tournament
+# Usage     : For game simulation and generate a game log for analysis, set SIMULATE = 1
+#             For human vs bot tournament, set SIMULATE = 0
+# Notes     : The tournament follows standard tournament rules with a specific blind structure and smallest 
+#               denomination of chips in each round of the tournament.
+#             In real life, the tournament proceeds to the next round after 30 minutes have elapsed. In this
+#               simulation, we assigned each player/dealer action to a certain number of seconds to mimic 
+#               the elapsed time of a real tournament. This is a much better solution and more realistic 
+#               than fixing say 20 games per round
+
 execfile('card.py') 
 execfile('hand.py') 
 execfile('deck.py') 
@@ -8,7 +20,7 @@ import random, pickle
 
 SIMULATE = 1
 #SIMULATE = 0
-VS_BOT_STYLE = None    # pick bot style to play against human, or None
+VS_BOT_STYLE = None # pick bot style to play against human, or None
 BOT_STYLE1 = None   # pick bot style 1 for bots play, or None
 BOT_STYLE2 = None   # pick bot style 2 for bots play, or None
 
