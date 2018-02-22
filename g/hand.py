@@ -1,3 +1,8 @@
+# Code      : hand.py
+# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
+# Purpose   : This class is used to represent a 5-, 6-, or 7-card hand. 
+# Notes     : The hand_rank and hand_name attributes represent the best 5-card poker hand from the hand object
+
 class Hand():
     def __init__(self, card1, card2, card3, card4, card5, card6=None, card7=None):
         # self.cards, self.suit, self.rank are in original order
@@ -23,20 +28,22 @@ class Hand():
         if len(self.cards) == 5:
             self.best_hand = self.cards 
         self.find_best_hand()
-
-    def iden_pairs(self):
-        # output format : # of pairs, highest pair card, second highest pair card output value : {0,1,2,3}, {2,...,14}, {2,...,14}
+       
+    # Purpose       : Identify Pair(s)
+    # Output        : # of pairs, highest pair card, second highest pair card 
+    # Output Value  : {0,1,2,3}, {2,...,14}, {2,...,14} 
+    def iden_pairs(self):        
         num_pairs=0 # number of pairs
         pairh1_rank=None # highest pair
         pairh2_rank=None # second highest pair
-        # this is just a bit faster by taking care of 1 pair right away?
+        
+        # this is just a bit faster by taking care of 1 pair right away
         if len(self.orank) - len(self.urank) == 1: # 1 pair only
             num_pairs=1
             for i in range(2,len(self.orank)+1):
                 if self.orank[i-2] == self.orank[i-1]:
                     pairh1_rank=self.orank[i-2]
         else:
-            # this is very similar to 3 of a kind, can we condense?
             temp_ranks=self.orank[:]
             # for ease of coding, pad left and right of list so we can easily compare to find pairs
             temp_ranks.append(0) # add a value at the beginning
@@ -53,8 +60,10 @@ class Hand():
                         pairh2_rank=temp_ranks[i]
         return num_pairs, pairh1_rank, pairh2_rank
 
+    # Purpose       : Identify 3-of-a-Kind
+    # Output        : # of 3-of-a-Kind, highest 3-of-a-Kind card, second highest 3-of-a-Kind card
+    # Output Value  : {0,1,2}, {2,...,14}, {2,...,13}
     def iden_3ofakind(self):
-        # output format : # of 3-of-a-Kind, highest 3-of-a-Kind card, second highest 3-of-a-Kind card output value : {0,1,2}, {2,...,14}, {2,...,13}
         num_three=0
         threeh1_rank=None
         threeh2_rank=None
@@ -74,8 +83,10 @@ class Hand():
                     threeh2_rank=temp_ranks[i]
         return num_three, threeh1_rank, threeh2_rank
         
+    # Purpose       : Identify Full House
+    # Output        : 3-of-a-Kind yes or no, 3-of-a-Kind card, high pair card
+    # Output Value  : {0,1}, {2,...,14}, {2,...,14}
     def iden_fullhouse(self):
-        # output format : 3-of-a-Kind yes or no, 3-of-a-Kind card, high pair card output value : {0,1}, {2,...,14}, {2,...,14}
         num_three, rank1_three, rank2_three = self.iden_3ofakind()
         if num_three == 2: # 2 3-of-a-Kind, lower 3-of-a-Kind becomes pair
             return 1, rank1_three, rank2_three
@@ -85,8 +96,10 @@ class Hand():
                 return 1, rank1_three, pairh1_rank
         return 0, None, None
         
+    # Purpose       : Identify 4-of-a-Kind
+    # Output        : 4-of-a-Kind yes or no, 4-of-a-Kind card, high card
+    # Output Value  : {0,1}, {2,...,14}, {2,...,14}
     def iden_4ofakind(self):
-        # output format : 4-of-a-Kind yes or no, 4-of-a-Kind card, high card output value : {0,1}, {2,...,14}, {2,...,14}
         for i in range(4,len(self.orank)+1):
             temp4ranks=self.orank[i-4:i]
             if temp4ranks[0] == temp4ranks[-1]:
@@ -95,21 +108,25 @@ class Hand():
                 return 1, temp4ranks[0], max(urank)
         return 0, None, None
 
+    # Purpose       : Identify Straight
+    # Output        : straight yes or no, high card, second high card
+    # Output Value  : {0,1}, {6,...,14}, {5,...,13}
     def iden_straight(self):
-        # output format : straight yes or no, high card, second high card output value : {0,1}, {6,...,14}, {5,...,13}
         if len(self.urank) < 5:
             return 0, None, None
         elif (self.urank[-1] == 14) & (self.urank[3] == 5): # wheel A2345
             return 1, 14, 5
         else:
-            for i in range(len(self.urank),4,-1): # do reverse do identify the largest straight first
+            for i in range(len(self.urank),4,-1): # do reverse to identify the largest straight first
                 temp5uranks=self.urank[i-5:i]
                 if temp5uranks[-1] - temp5uranks[0] == 4:
                     return 1, temp5uranks[-1], temp5uranks[-2]
         return 0, None, None
 
+    # Purpose       : Identify Flush
+    # Output        : Flush yes or no, flush suit, [5 highest flush cards]
+    # Output Value  : {0,1}, {1,2,3,4}, [{6,...,14}, {5,...,13}, {4,...,12}, {3,...,11}, {2,...,10}]
     def iden_flush(self):
-        # output format : Flush yes or no, flush suit, [5 highest flush cards] output value : {0,1}, {1,2,3,4}, [{6,...,14}, {5,...,13}, {4,...,12}, {3,...,11}, {2,...,10}]
         if len(self.usuit) == 4:
             return 0, 0, []
         else:
@@ -128,8 +145,10 @@ class Hand():
                     return 1, s, suitcards[:5]
         return 0, 0, []
 
+    # Purpose       : Identify Straight Flush
+    # Output        : Straight Flush yes or no, high card, second high card
+    # Output Value  : {0,1}, {6,...,14}, {5,...,13}
     def iden_straightflush(self):
-        # output format : Straight Flush yes or no, high card, second high card output value : {0,1}, {6,...,14}, {5,...,13}
         has_flush, flush_suit, _ = self.iden_flush()
         if has_flush & self.iden_straight()[0]: # if exists straight and flush, then we might have straight flush
             suitcards=[]
@@ -146,8 +165,15 @@ class Hand():
                         return 1, temp5uranks[-1], temp5uranks[-2]
         return 0, 0, 0
 
-    # Royal Flush Straight Flush Four of a Kind Full House Flush Straight Three of a Kind Two Pairs One Pair we need to optimize this, find just a matrix of a few features and 
-    # compare. if same rank then only compare in detail
+    # Purpose       : Find the best 5-card poker hand from the 5-, 6-, or 7-card hand
+    # Output        : hand_type (common name of the 5-card poker hand)
+    #                 hand_name (unique 5-card poker hand)
+    #                 hand_rank (each hand name is assigned a unique hand rank, higher rank = better hand)
+    # Note          : Poker hand type, ordered from the highest to lowest rank
+    #                   Royal Flush > Straight Flush > Four of a Kind > Full House > Flush > Straight >
+    #                   Three of a Kind > Two Pairs > One Pair > High Card
+    #                 Hand name is the "name" of the unique combination of 5-card hand that has the same "strength"
+    #                   ex. 2-pair hands AS AD 5S 5C JH and AD AH 5D 5S JH have the same name of 2-pair A and 5 with J high card
     def find_best_hand(self):
         map_rank = {2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:'J',12:'Q',13:'K',14:'A'}
         has_straightflush, straightflush_high1, straightflush_high2 = self.iden_straightflush()
