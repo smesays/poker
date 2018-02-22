@@ -82,7 +82,7 @@ class Gameplay():
         if amt > agent.balance:
             amt = agent.balance
 
-        map_act = {'b':'bets', 'c':'calls', 'r':'calls and raises'}
+        map_act = {'b':'bets', 'c':'calls', 'r':'raises'}
         self.betidx += 1
         agent.bets(amt+callamt)
         print '    %s %s%s $%d.' % (agent.name, map_act[betact], blind, amt), agent
@@ -104,51 +104,51 @@ class Gameplay():
 
 # how to figure out when to reveal hole cards to the log?
     def raiseamt_audit(self, betagent, resagent, betact, raiseamt):
-        print 'raisechk', betact, raiseamt
+#        print 'raisechk', betact, raiseamt
         if resagent.balance == 0:
-            print 'raisechk 1'
+#            print 'raisechk 1'
             return 'c', 0
         elif raiseamt > resagent.balance:
-            print 'raisechk 2'
+#            print 'raisechk 2'
             return betact, resagent.balance
-        print 'raisechk 3'
+#        print 'raisechk 3'
         return betact, self.minchip_audit(raiseamt)
     
     def res_audit(self, betagent, callamt, resagent, resact, resamt):
-        print "res audit"
+#        print "res audit"
         if resact == 'a':
-            print 'res audit1 bef', resact, resamt
+#            print 'res audit1 bef', resact, resamt
             resact, resamt = 'r', min(betagent.balance, resagent.balance - callamt)
-            print 'res audit1 aft', resact, resamt
+#            print 'res audit1 aft', resact, resamt
             
         if resact == 'r':
-            print "res audit2 bef", resact, resamt
+#            print "res audit2 bef", resact, resamt
             if resamt < callamt:
-                print "res audit2a bef", resact, resamt
+#                print "res audit2a bef", resact, resamt
                 resact, resamt = 'c', 0
 
             if resagent.balance == callamt:
-                print " "*self.GAME_INDENT, "%s, you can't raise, only call by going all-in." % (resagent.name)
+#                print " "*self.GAME_INDENT, "%s, you can't raise, only call by going all-in." % (resagent.name)
                 resact, resamt = 'c', 0
 
             if resamt > resagent.balance - callamt:
-                print "res audit2b bef", resact, resamt
+#                print "res audit2b bef", resact, resamt
                 resamt = resagent.balance - callamt
             elif resamt == resagent.balance or resamt == betagent.balance:
 #                print "res audit2c bef", resact, resamt
                 pass    # raise all-in
             elif resamt < self.minbet:
-                print "res audit2d bef", resact, resamt
+#                print "res audit2d bef", resact, resamt
                 resact, resamt = 'c', 0
-            print "res audit2 aft", resact, resamt
+#            print "res audit2 aft", resact, resamt
         return resact, self.minchip_audit(resamt)
 
     def bet_audit(self, betagent, betact, betamt, resagent):
         if betact == 'b' or betact == 'r':
-            print 'bet audit bef', betact, betamt
+#            print 'bet audit bef', betact, betamt
             if betamt > resagent.balance: # cannot bet more than opponent's balance
                 betamt = resagent.balance
-            print 'bet audit aft', betact, betamt
+#            print 'bet audit aft', betact, betamt
             if betamt < self.minbet:
                 betact, betamt = 'k', 0
         if betamt > 0:
@@ -176,9 +176,9 @@ class Gameplay():
                         betamt = int(tempin)
         else:
             betact, betamt = betagent.responds(self.blind, self.pot, 0, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
-        print 'opening ', betact, betamt
+#        print 'opening ', betact, betamt
         betact, betamt = self.bet_audit(betagent, betact, betamt, resagent)
-        print 'after betaudit ', betact, betamt
+#        print 'after betaudit ', betact, betamt
 
         if betact == 'k':
             betagent_check = 1 
@@ -192,9 +192,9 @@ class Gameplay():
 # logic here is a bit of a mess because of using the same agent.responds .... see if can tighten it up
             betact = 'r'
             betamt = betagent.balance
-            print 'before raiseamt audit', betact, betamt
+#            print 'before raiseamt audit', betact, betamt
             betact, betamt = self.raiseamt_audit(betagent, resagent, betact, betamt)
-            print 'after raiseamt audit', betact, betamt
+#            print 'after raiseamt audit', betact, betamt
             self.bets(betagent, betamt)
         else: 
             self.bets(betagent, betamt)

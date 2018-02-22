@@ -6,8 +6,8 @@ execfile('gameplay.py')
 import sys, os, time
 import random, pickle
 
-SIMULATE = 1
-#SIMULATE = 0
+#SIMULATE = 1
+SIMULATE = 0
 VS_BOT_STYLE = None    # pick bot style to play against human, or None
 BOT_STYLE1 = None   # pick bot style 1 for bots play, or None
 BOT_STYLE2 = None   # pick bot style 2 for bots play, or None
@@ -40,13 +40,15 @@ def tournament(tourneynum):
         print "                                                              * Welcome to the Texas No Limit Hold'em Heads-up Tournament! *"
         print "                                                              **************************************************************"
         print " "
-        human =  raw_input("                                                                   > Is human playing? Enter y or n: ").lower()
+        human = 'y'
+#        human =  raw_input("                                                                   > Is human playing? Enter y or n: ").lower()
         PRINT_LOG = 1
 
     quick_slow = 's'
     if human == 'y':
-        quick_slow = raw_input("                                                                   > (Q)uick or (S)tandard game? Enter q or s: ")
-        quick_slow = quick_slow.lower()
+#        quick_slow = raw_input("                                                                   > (Q)uick or (S)tandard game? Enter q or s: ")
+#        quick_slow = quick_slow.lower()
+        quick_slow = 'q'
         if quick_slow == 'q':
             BUY_IN = 5000
         human_name = raw_input("                                                                   > Enter your name: ")
@@ -56,13 +58,13 @@ def tournament(tourneynum):
         if random.choice([1,2]) == 1:
             prompt = 1
             print "                                                                   %s starts first." % human_name
-            agent1 = Agent(human_name, BUY_IN, '')
+            agent1 = Agent(human_name, BUY_IN, 0)
             agent2 = Agent("Bot", BUY_IN, VS_BOT_STYLE)
         else:
             prompt = 2
             print "                                                                   Bot starts first."
             agent1 = Agent("Bot", BUY_IN, VS_BOT_STYLE)
-            agent2 = Agent(human_name, BUY_IN, '')
+            agent2 = Agent(human_name, BUY_IN, 0)
         time.sleep(1)
         print "                                                                   Each player starts with $%d. Let's begin!" % BUY_IN
         print " "
@@ -107,8 +109,8 @@ def tournament(tourneynum):
         else:
             if PRINT_LOG == 0:
                 nprint()
-            print 'styles: %d %d' % (agent1.style, agent2.style)
-            print 'Round %d Game %d with blind $%d/$%d. Minimum bet is $%d. (Min. chip $%d)' % (roundnum, gamenum, blind, blind*2, blind*2, minchip)
+#            print 'styles: %d %d' % (agent1.style, agent2.style)
+            print 'Round %d Game %d with blinds $%d/$%d. Minimum bet is $%d. (Min. chip $%d)' % (roundnum, gamenum, blind, blind*2, blind*2, minchip)
             if gamenum/2.0 != int(gamenum/2.0):
                 game = Gameplay(gamenum, agent1, agent2, blind, minchip, prompt)
             else:
@@ -143,11 +145,11 @@ def tournament(tourneynum):
         print ' '
 
     print agent_log
-    print game_stat_log
+#    print game_stat_log
     print ' '
 
-    if SIMULATE:
-        f = open("../log/agent_fulllog20180208.txt", "a")
+    if SIMULATE==0:
+        f = open("../log/agent_fulllog20180209.txt", "a")
         for i in range(len(agent_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -155,7 +157,7 @@ def tournament(tourneynum):
             f.write("\n")
         f.close()
 
-        f = open("../log/gamestat_fulllog20180208.txt", "a")
+        f = open("../log/gamestat_fulllog20180209.txt", "a")
         for i in range(len(game_stat_log)):
             f.write("%d"%tourneynum)
             f.write(",")
@@ -164,7 +166,7 @@ def tournament(tourneynum):
         f.close()
 
         if gamenum < 3:
-            f = open("../log/agent_shortlog20180208.txt", "a")
+            f = open("../log/agent_shortlog20180209.txt", "a")
             for i in range(len(agent_log)):
                 f.write("%d"%tourneynum)
                 f.write(",")
@@ -172,7 +174,7 @@ def tournament(tourneynum):
                 f.write("\n")
             f.close()
         else:
-            f = open("../log/agent_log20180208.txt", "a")
+            f = open("../log/agent_log20180209.txt", "a")
             for i in range(len(agent_log)):
                 f.write("%d"%tourneynum)
                 f.write(",")
@@ -180,7 +182,7 @@ def tournament(tourneynum):
                 f.write("\n")
             f.close()
 
-            f = open("../log/tourney_log20180208.txt", "a")
+            f = open("../log/tourney_log20180209.txt", "a")
             for i in range(len(tourney_log)):
                 for j in range(len(tourney_log[i])):
                     f.write("%d"%tourneynum)
@@ -195,4 +197,5 @@ if __name__ == "__main__":
             print 'tournament %d' % ty
             tournament(ty)
     else:
-        tournament(1)
+        for ty in range(500):
+            tournament(ty)

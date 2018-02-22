@@ -116,14 +116,14 @@ class Agent():
             htwo_hand = Hand(self.hole2, card1, card2, card3, card4, card5)
             best_hand = Hand(self.hole1, self.hole2, card1, card2, card3, card4, card5)
             if comm_hand.hand_type == best_hand.hand_type:
-                print 'holerank1 ', comm_hand.hand_type
+#                print 'holerank1 ', comm_hand.hand_type
                 holerank = 0
                 win_prob -= 0.5
             elif comm_hand.hand_type != hone_hand.hand_type or comm_hand.hand_type != htwo_hand.hand_type:
-                print 'holerank2 ', comm_hand.hand_type, hone_hand.hand_type, htwo_hand.hand_type
+#                print 'holerank2 ', comm_hand.hand_type, hone_hand.hand_type, htwo_hand.hand_type
                 holerank = 1
             elif best_hand.hand_type != hone_hand.hand_type and comm_hand.hand_type != htwo_hand.hand_type:
-                print 'holerank3 ', comm_hand.hand_type, hone_hand.hand_type, htwo_hand.hand_type, best_hand.hand_type
+#                print 'holerank3 ', comm_hand.hand_type, hone_hand.hand_type, htwo_hand.hand_type, best_hand.hand_type
                 holerank = 2
                 win_prob += 0.05
 
@@ -136,7 +136,7 @@ class Agent():
                 return 'k', 0
 
         if bigblind_left < 7:
-            print 'bigblindleft', win_prob, call_balpct
+#            print 'bigblindleft', win_prob, call_balpct
             if card1 is None and win_prob > .93:
                 return 'r', int(win_prob/(1-win_prob+0.000000001) * potsize * 1.2)*randfct
             elif card1 is not None and win_prob > .97:
@@ -163,10 +163,10 @@ class Agent():
                 return 'c', 0
             return 'r', (potsize - callamt)*randfct
         elif win_prob < .9: # 2-pair
-            print 'win_prob < .9', win_prob
+#            print 'win_prob < .9', win_prob
             if call_ratio > 1.5:
                 return 'c', 0
-            print 'win_prob < .9 r'
+#            print 'win_prob < .9 r'
             return 'r', int(win_prob/(1-win_prob+0.000000001) * potsize)*randfct
         return 'a', 0 # better than 2-pair
 
@@ -369,7 +369,7 @@ class Agent():
         return betact, int(betamt)
 
     def style_all_in(self, blind, potsize, callamt, card1, card2, card3, card4, card5):
-        print 'style all-in'
+#        print 'style all-in'
         rand = random.uniform(0,1)
         call_ratio = callamt * 1.0 / (potsize - callamt)
         bigblind_left = int((self.balance - callamt) / blind / 2)
@@ -379,7 +379,7 @@ class Agent():
            betact == 'r' and rand < 0.4 or \
            betact == 'c' and call_ratio < 1.51 and rand < 0.65 or \
            betact == 'k' and rand < 0.1: 
-            print 'style all-in change to a'
+#            print 'style all-in change to a'
             betact, betamt = 'a', 0
         return betact, betamt
 
