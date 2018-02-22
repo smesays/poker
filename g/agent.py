@@ -1,10 +1,10 @@
-# add callamt / balance to not raise again
-# allbets / balance to figure out how much committed and .....
-# prob to bluff, but only a very small chance to the detriment of balance
-# each number is a random float choice
-# depending on blind/balance, shift style?
-# bet amt also random around algo number
-# design stupid bot as baseline and compare smarter bots to stupid 
+# Code      : agent.py
+# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
+# Purpose   : This class is used to represent the players in the Texas Hold'em game
+# Notes     : There are 8 styles of players implemented within this class. Each style has its own method, and the 
+#               method dictates how that style of player responds to the game environment, what action to take,
+#               and the amount to bet.
+
 import pickle
 import random
 import math
@@ -13,8 +13,8 @@ import numpy as np
 class Agent():
     BOT_STYLE_MAP = {1:'aggressive', 2:'conservative', 3:'high_hater', 4:'random', 5:'all-in', 6:'multi-style', 7:'feign', 8:'bluff'}
 
-    # load dictionary to be used for all agents
-    pkl_file = open('type_prob_dict.pkl', 'rb')
+    # load probability dictionaries to be used by all agent types
+    pkl_file = open('../table/type_prob_dict.pkl', 'rb')
     type_prob_dict = pickle.load(pkl_file)
     pkl_file.close()
 
@@ -29,14 +29,16 @@ class Agent():
     def __init__(self, name, buy_in, style=None):
         self.name=name
         self.balance=buy_in
-        self.allbets=0
-        self.hole1=None
-        self.hole2=None
+        self.allbets=0      # this is used to keep track of all the bets in a single game
+                            # this way, by comparing the other agent's self.allbets, we know the diff is the amt to call 
+        self.hole1=None     # hole card 1
+        self.hole2=None     # hole card 2
         if style is None:
             self.style=random.choice( range(1, len(self.BOT_STYLE_MAP)+1) )
         else:
             self.style=style
         
+    # zero out the bet amts from the previous game, and start a new amt tally for the new game
     def clear_bets(self):
         self.allbets=0
         
@@ -47,20 +49,28 @@ class Agent():
     def wins(self,amt):
         self.balance += amt
 
+    # Purpose   : Evaluate current hand and return the probability of winning
+    # Input     : community cards: card1 - card5 parameters
+    #             hole cards     : from self object
+    # Output    : probability of winning
     def eval_hand(self, card1=None, card2=None, card3=None, card4=None, card5=None):
-        if card1 is None:
+        if card1 is None:   # evaluate hole cards (pre-flop)
+            # this is a simple algorithm by adding up the rank of the 2 hole cards (max 14 + 14 = 28) and divide by 28
+            # if the 2 hole cards are suited, increase the probability by 10%
+            # if the 2 hole cards have the same rank, set min prob = 50% (anecdotally pair of 2s have about 50% chance of winning)
             if self.hole1.getSuit() == self.hole2.getSuit():
                 return min(1, (self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28 * 1.1)
             elif self.hole1.getRank() == self.hole2.getRank():
                 return min(1, max(0.5, (self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28))
             else:
                 return (self.hole1.getRank() + self.hole2.getRank()) * 1.0 / 28
-        else:
+        else:   # evaluate best hand so far with given community cards
+            # do a probability lookup based on the 10 types of poker hands 
             hand=Hand(self.hole1, self.hole2, card1, card2, card3, card4, card5)
-#            print 'audit2c ', hand.hand_type
-#            print 'audit2c ', self.type_prob_dict[hand.hand_type]
             return self.type_prob_dict[hand.hand_type]
 
+    # aggressive - tends to bet or raise a higher $
+    # written by: G
     def style_aggressive(self, potsize, callamt, card1, card2, card3, card4, card5):
         win_prob = self.eval_hand(card1, card2, card3, card4, card5)
         call_ratio = callamt * 1.0 / (potsize - callamt)
@@ -102,6 +112,8 @@ class Agent():
             else:            
                 return 'b', int(potsize * 2)*randfct
 
+    # conservative - try to protect $ balance
+    # written by: G
     def style_conservative(self, blind, potsize, callamt, card1, card2, card3, card4, card5):
         win_prob = self.eval_hand(card1, card2, card3, card4, card5)
         call_ratio = callamt * 1.0 / (potsize - callamt)
@@ -170,8 +182,9 @@ class Agent():
             return 'r', int(win_prob/(1-win_prob+0.000000001) * potsize)*randfct
         return 'a', 0 # better than 2-pair
 
+    # feign - likes to hide the true strength of the hand
+    # written by: Steven
     def style_feign(self, blind, potsize, callamt, *args):
-
         status_list = [card for card in list(args) if card != None]
         cards = list(args)
         status = 5 - len(status_list) # 5 pre-flop 2 flop 1 turn 0 river
@@ -246,9 +259,9 @@ class Agent():
 
         return act, amt
 
-
+    # bluff - likes to pretend a stronger hand strength
+    # written by: Steven
     def style_bluff(self, blind, potsize, callamt, *args):
-
         status_list = [card for card in list(args) if card != None]
         cards = list(args)
         status = 5 - len(status_list) # 5 pre-flop 2 flop 1 turn 0 river
@@ -270,7 +283,6 @@ class Agent():
             max_pay = min(max_pay, self.balance)
 
             if potsize < blind*100:
-
                 if callamt <= max_pay:
                     if max_pay <= blind*3:
                         act, amt = ['k', 0 ] if callamt == 0 else ['c', 0]
@@ -299,7 +311,6 @@ class Agent():
                 max_pay = max_pay*win_prob if win_prob < 0.9 else max_pay
 
             if callamt <= max_pay:
-
                 if callamt == 0: return 'r', int(max_pay*0.8)
                 elif callamt <= max_pay*0.5: return 'r', int(max_pay*0.5)
                 else: return 'c', 0
@@ -324,11 +335,11 @@ class Agent():
                 
         return 'f', 0
 
+    # high hater - hate hands with only high cards
+    # written by: Steven
     def style_high_hater(self, potsize, callamt, card1, card2, card3, card4, card5):
         win_prob = self.eval_hand(card1, card2, card3, card4, card5)
-        call_ratio     = callamt * 1.0 / (potsize - callamt)
-        #### need to figure out how self.balance=0 gets in here
-        ### for now, cheat
+        call_ratio = callamt * 1.0 / (potsize - callamt)
         if self.balance == 0:
             withdraw_ratio = 100
         else:
@@ -346,16 +357,15 @@ class Agent():
             if call_ratio > 1 or withdraw_ratio > 4:
                 return 'f', 0
             elif withdraw_ratio < 0.1:
-#                print 'highhater r1', callamt
-#                print 'highhater r1', max(callamt, potsize * 2)                 
                 return 'r', max(callamt, potsize * 2)
             return 'c', 0
         else:
             if call_ratio > 5:
                 return 'c', 0
-#            print 'highhater r2', int(random.uniform(0,0.4)*self.balance)
             return 'r', min(potsize*5, int(random.uniform(0,0.4)*self.balance))
 
+    # random - random play
+    # written by: G
     def style_random(self, potsize, callamt):
         betamt = 0
         if callamt > 0:
@@ -368,8 +378,9 @@ class Agent():
                 betamt = max( random.uniform(0.05,0.5), min(0.8,int(np.random.normal(0.05,0.2))) )*self.balance
         return betact, int(betamt)
 
+    # all in - tends to go all-in
+    # written by: G
     def style_all_in(self, blind, potsize, callamt, card1, card2, card3, card4, card5):
-#        print 'style all-in'
         rand = random.uniform(0,1)
         call_ratio = callamt * 1.0 / (potsize - callamt)
         bigblind_left = int((self.balance - callamt) / blind / 2)
@@ -379,34 +390,30 @@ class Agent():
            betact == 'r' and rand < 0.4 or \
            betact == 'c' and call_ratio < 1.51 and rand < 0.65 or \
            betact == 'k' and rand < 0.1: 
-#            print 'style all-in change to a'
             betact, betamt = 'a', 0
         return betact, betamt
 
+    # if call amt is almost the entire balance, might as well go all-in        
     def round_up_all_in(self, callamt, betact, betamt, pct_left):                            
-        # if call amt is almost the entire balance, might as well go all-in
         if self.balance == 0:
             betact, betamt = ['k', 0] if callamt == 0 else ['f', 0]
         else:    
             if callamt * 1.0 / self.balance > (1-pct_left):
-    #            print 'respond1'
                 if (betact == 'c') | (betact == 'r'):
-    #                print 'respond1a bef', betact, betamt
                     betact, betamt = 'r', self.balance - callamt
-    #                print 'respond1a aft', betact, betamt
             elif betamt * 1.0 / self.balance > (1-pct_left):
-    #            print 'respond2'
                 if betact == 'r':
-    #                print 'respond2a bef', betact, betamt
                     betamt = self.balance
-    #                print 'respond2a aft', betact, betamt
         return betact, betamt
 
+    # Purpose   : Depending on the style of player, determine what action to take (check, call, raise, all-in, or fold), 
+    #               and the amount to bet or raise
+    # Input     : blind amount, pot size, amt to call, community cards, style of play (and agent's own hole cards)
+    # Output    : action to be taken and the corresponding amt
     def responds_base(self, blind, potsize, callamt, card1=None, card2=None, card3=None, card4=None, card5=None, style=None):
         if style is None:
             style = self.style
-
-        # response: call, raise, all-in, or fold, and the amount to raise
+        
         if self.BOT_STYLE_MAP[style] == 'aggressive':
             betact, betamt = self.style_aggressive(potsize, callamt, card1, card2, card3, card4, card5)
             betact, betamt = self.round_up_all_in(callamt, betact, betamt, 0.05)
@@ -430,9 +437,7 @@ class Agent():
             betact, betamt = self.style_random(potsize, callamt)
 
         elif self.BOT_STYLE_MAP[style] == 'all-in':
-            print 'responds base all-in'
             betact, betamt = self.style_all_in(blind, potsize, callamt, card1, card2, card3, card4, card5)
-            print 'responds base all-in', betact, betamt
         
         elif self.BOT_STYLE_MAP[style] == 'multi-style':
             randstyle = random.choice(range(len(self.BOT_STYLE_MAP)))+1
@@ -450,8 +455,6 @@ class Agent():
             betact = 'c'
 
         if betamt > self.balance: # raise over balance
-#            print 'respond2 bet > self balance'
-            print betamt, self.balance, callamt
             betamt = self.balance - callamt
 
         return betact, betamt
