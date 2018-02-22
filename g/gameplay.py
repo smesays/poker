@@ -1,3 +1,9 @@
+# Code      : gameplay.py
+# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
+# Purpose   : This class is used to represent a single game within a tournament of multiple games and rounds
+# Notes     : Each game is dealt from a newly shuffled deck of cards, has its own blinds requirement, one set
+#               of community cards, etc.
+
 import sys
 import pickle
 
@@ -5,7 +11,7 @@ class Gameplay():
     # when initializing, agents should be ordered so they go first alternately
     GAME_INDENT = 66    # number of spaces to indent the game messages
 
-    pkl_file = open('type_prob_dict.pkl', 'rb')
+    pkl_file = open('../table/type_prob_dict.pkl', 'rb')
     type_prob_dict = pickle.load(pkl_file)
     pkl_file.close()
 
@@ -22,12 +28,12 @@ class Gameplay():
         self.agent2.clear_bets()
         self.blind = blind
         self.minbet = blind * 2 # minimum bet is big blind
-        self.minchip = minchip # all bets should be in multiples of smallest chip denomination
+        self.minchip = minchip  # all bets should be in multiples of smallest chip denomination
         self.prompt = prompt
         self.elapsed = 0    # track elapsed time in seconds so we can increase blind after 30 minutes
 
-        self.pot = 0 # total amt of chips in the pot
-        self.phase = 0 # track the phase of the game
+        self.pot = 0    # total amt of chips in the pot
+        self.phase = 0  # track the phase of the game
         self.betidx = -1
         self.betlog = [] # tuple (phase, betidx, agent, amt) is there a way to not store agent class? store 1 or 2 instead
         self.agent1_fold = 0
@@ -55,6 +61,8 @@ class Gameplay():
     def log_hole_cards(self, agent):
         return tuple(list(self.log_card(agent.hole1)) + list(self.log_card(agent.hole2)))
 
+    # same method from agent.py
+    # this is inserted here so that we can output the winning probability of the hand to the log for analysis later
     def eval_hand(self, agent, card1=None, card2=None, card3=None, card4=None, card5=None):
         if card1 is None:
             if agent.hole1.getSuit() == agent.hole2.getSuit():
@@ -67,12 +75,16 @@ class Gameplay():
             hand=Hand(agent.hole1, agent.hole2, card1, card2, card3, card4, card5)
             return self.type_prob_dict[hand.hand_type]
 
+    # amount needs to be divisible by the smallest denomination of chip
+    # if style algorithm returns an amount that is not divisible, round down
     def minchip_audit(self, amt):
         return int(amt / self.minchip) * self.minchip
 
-    # amt is callamt if callamt is 0
-    # amt is raiseamt if callamt > 0
+    # Purpose   : Bet, raise, or call, all involve money moving from player to the pot. This method 
+    #               does the accounting of the "betting action"
     def bets(self, agent, amt, betact='b', blind='', printpot=1, callamt=0):
+    # parameter amt is callamt if callamt is 0
+    # parameter amt is raiseamt if callamt > 0
         if betact == 'r' and callamt > agent.balance:
             betact, amt, callamt = 'c', agent.balance, 0
         if amt > agent.balance:
@@ -98,55 +110,43 @@ class Gameplay():
                                      list(self.log_comm_cards()) + list(self.log_hole_cards(agent)) + \
                                      [self.eval_hand(agent, self.flop1, self.flop2, self.flop3, self.turn, self.river)] ))
 
-# how to figure out when to reveal hole cards to the log?
+    # ensure that the raise action and the raise amount make sense
     def raiseamt_audit(self, betagent, resagent, betact, raiseamt):
-#        print 'raisechk', betact, raiseamt
         if resagent.balance == 0:
-#            print 'raisechk 1'
             return 'c', 0
         elif raiseamt > resagent.balance:
-#            print 'raisechk 2'
             return betact, resagent.balance
-#        print 'raisechk 3'
         return betact, self.minchip_audit(raiseamt)
     
+    # ensure that the response action and the amount make sense
     def res_audit(self, betagent, callamt, resagent, resact, resamt):
-#        print "res audit"
         if resact == 'a':
-#            print 'res audit1 bef', resact, resamt
             resact, resamt = 'r', min(betagent.balance, resagent.balance - callamt)
-#            print 'res audit1 aft', resact, resamt
             
         if resact == 'r':
-#            print "res audit2 bef", resact, resamt
             if resamt < callamt:
-#                print "res audit2a bef", resact, resamt
                 resact, resamt = 'c', 0
 
             if resagent.balance == callamt:
-#                print " "*self.GAME_INDENT, "%s, you can't raise, only call by going all-in." % (resagent.name)
                 resact, resamt = 'c', 0
 
             if resamt > resagent.balance - callamt:
-#                print "res audit2b bef", resact, resamt
                 resamt = resagent.balance - callamt
             elif resamt == resagent.balance or resamt == betagent.balance:
-#                print "res audit2c bef", resact, resamt
                 pass    # raise all-in
             elif resamt < self.minbet:
-#                print "res audit2d bef", resact, resamt
                 resact, resamt = 'c', 0
-#            print "res audit2 aft", resact, resamt
         return resact, self.minchip_audit(resamt)
 
+    # ensure that the bet action and the amount make sense
     def bet_audit(self, betagent, betact, betamt, resagent):
         if betact == 'b' or betact == 'r':
-#            print 'bet audit bef', betact, betamt
             if betamt > resagent.balance: # cannot bet more than opponent's balance
                 betamt = resagent.balance
-#            print 'bet audit aft', betact, betamt
+                
             if betamt < self.minbet:
                 betact, betamt = 'k', 0
+                
         if betamt > 0:
             betamt = self.minchip_audit(betamt)
             if betamt == 0:
@@ -156,7 +156,8 @@ class Gameplay():
     def print_action_txt(self, agent):
         return 'Action to %s. (Hole: %s %s, $%d left)' % (agent.name, agent.hole1, agent.hole2, agent.balance)
 
-    def opening(self, betagent, resagent, prompt): # opening with betting or checking
+    # opening the action with bet or check
+    def opening(self, betagent, resagent, prompt): 
         betagent_check = 0
         betact, betamt = '', 0
         if self.prompt == prompt:
@@ -172,9 +173,8 @@ class Gameplay():
                         betamt = int(tempin)
         else:
             betact, betamt = betagent.responds(self.blind, self.pot, 0, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
-#        print 'opening ', betact, betamt
+            
         betact, betamt = self.bet_audit(betagent, betact, betamt, resagent)
-#        print 'after betaudit ', betact, betamt
 
         if betact == 'k':
             betagent_check = 1 
@@ -185,25 +185,22 @@ class Gameplay():
                                          list(self.log_comm_cards()) + list(self.log_hole_cards(betagent)) + \
                                          [self.eval_hand(betagent, self.flop1, self.flop2, self.flop3, self.turn, self.river)] ))
         elif betact == 'a':
-# logic here is a bit of a mess because of using the same agent.responds .... see if can tighten it up
             betact = 'r'
             betamt = betagent.balance
-#            print 'before raiseamt audit', betact, betamt
             betact, betamt = self.raiseamt_audit(betagent, resagent, betact, betamt)
-#            print 'after raiseamt audit', betact, betamt
             self.bets(betagent, betamt)
         else: 
             self.bets(betagent, betamt)
 
         return betagent_check
 
-    def responding(self, betagent, resagent, prompt): # responding to a bet
+    # responding to a bet
+    def responding(self, betagent, resagent, prompt): 
         callamt = betagent.allbets - resagent.allbets 
         betact, betamt = '', 0
-        if self.prompt == prompt: # human agent2 to respond
+        if self.prompt == prompt: 
             print " "*self.GAME_INDENT, "%s" % self.print_action_txt(resagent)
             if (betagent.balance == 0) | (resagent.balance == 0) | (resagent.balance == callamt):
-#                print 'print call option 1'
                 while betact not in ['c','f']:
                     print " "*self.GAME_INDENT, '> (C)all $%d, or (F)old? Enter c, or f:' % callamt,
                     betact = raw_input().lower()
@@ -218,12 +215,10 @@ class Gameplay():
                         if tempin.isdigit():
                             betamt = int(tempin)
         else:
-#            print 'betting 1 ne 2 bot respond'
             betact, betamt = resagent.responds(self.blind, self.pot, callamt, card1=self.flop1, card2=self.flop2, card3=self.flop3, card4=self.turn, card5=self.river)
             if betamt < 0:
                 print 'what is this1?'
                 resagent.balance = 0
-#            print betact, betamt
         betact, betamt = self.res_audit(betagent, callamt, resagent, betact, betamt)
 
         foldflag = 0
@@ -231,12 +226,10 @@ class Gameplay():
             self.bets(resagent, callamt, 'c')
             checkflag = 1
         elif (betact == 'r') | (betact == 'a'):
-#            print 'betting 1 ne 2 r or a'
             if betact == 'a':
                 betact = 'r'
                 betamt = resagent.balance - callamt
             betact, betamt = self.raiseamt_audit(resagent, betagent, betact, betamt)
-#            print 'after raisechk'
             if betact == 'c':
                 self.bets(resagent, callamt, 'c')
                 checkflag = 1
@@ -246,8 +239,8 @@ class Gameplay():
         else:
             foldflag = 1
             checkflag = 1                        
-            # when we log for the fold action, we need to include the callamt because callamt / potsize is the ratio that is meaning
-            # to cause a player to fold
+            # when we log for the fold action, we need to include the callamt because callamt / potsize is the ratio that has meaning
+            # and can cause the player to fold
             self.elapsed += 10
             if self.phase != 0:
                 self.betlog.append(tuple([self.gamenum, self.phase, self.betidx, resagent.name, resagent.style, betact, callamt, self.blind, resagent.balance, self.pot] + \
@@ -256,7 +249,10 @@ class Gameplay():
 
         return checkflag, checkflag, foldflag
 
-    def bet_phase(self): # last round bet should be all in and not leave amt smaller than next blind!
+    # Purpose   : The players take turn to take action and resolve any bets that need to be called
+    # Note      : Utilize the player object's allbets attribute to track whether there is any imbalance. If so,
+    #               then the other player needs to respond.    
+    def bet_phase(self): 
         if (self.agent1.balance == 0) | (self.agent2.balance == 0):
             return
 
@@ -267,15 +263,12 @@ class Gameplay():
         while (agent1_check == 0) | (agent2_check == 0):
             loop_cnt += 1
             if self.agent1.allbets > self.agent2.allbets: # agent2 to respond
-#                print 'betting 1>2'
                 agent1_check, agent2_check, self.agent2_fold = self.responding(self.agent1, self.agent2, 2)
 
             elif self.agent1.allbets < self.agent2.allbets: # agent1 to respond
-#                print 'betting 1<2'
                 agent1_check, agent2_check, self.agent1_fold = self.responding(self.agent2, self.agent1, 1)
 
             else:
-#                print 'betting bal=bal'
                 if agent1_check == 0: # agent 1 to act
                     agent1_check = self.opening(self.agent1, self.agent2, 1)
                 elif agent2_check == 0: # agent 2 to act
@@ -285,6 +278,7 @@ class Gameplay():
                 print 'ERROR: break loop'
                 sys.exit(1)
 
+    # if someone folds, then resolve the game and the other player wins the pot
     def fold_audit(self):
         if (self.agent1_fold == 1) | (self.agent2_fold == 1):
             if self.agent1_fold == 1:
@@ -299,6 +293,9 @@ class Gameplay():
             return 1
         return 0
 
+    # Purpose   : This method plays out the entire game, from players paying the blinds, shuffling the deck and 
+    #               dealing hole cards, to betting and dealing the community cards in each phase and resolving the 
+    #               game to find the winner
     def play(self):
         self.elapsed += 45  # collecting and shuffling the deck
         self.bets(self.agent2, self.blind, blind=' small blind', printpot=0)# bet small blind
