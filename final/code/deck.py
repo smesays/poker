@@ -1,5 +1,5 @@
 # Code      : /code/deck.py
-# Written by: TANG, Chit Long (Steven)
+# Written by: LIU, Jiun Ee (G)
 # Purpose   : This class is used to represent a deck of 52 cards
 
 import time
