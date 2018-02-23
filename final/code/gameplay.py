@@ -1,5 +1,5 @@
 # Code      : /code/gameplay.py
-# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
+# Written by: LIU, Jiun Ee (G)
 # Purpose   : This class is used to represent a single game within a tournament of multiple games and rounds
 # Notes     : Each game is dealt from a newly shuffled deck of cards, has its own blinds requirement, one set
 #               of community cards, etc.
