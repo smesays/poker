@@ -13,13 +13,15 @@ import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 
-# Global Parameters:
+#=================================================================== Global Parameters ===================================================================
 BATCH_SIZE = 2048
 IS_CUDA    = False
 LR         = 0.01
 MOMENTUM   = 1e-6
 EPOCHS      = 20
 LOG_IN     = 1000
+
+#================================================================== Data Pre-processing ==================================================================
 # Load Dataset
 def load_dataset(path, mask):
     
@@ -27,32 +29,44 @@ def load_dataset(path, mask):
     # Attributes: tournum, gamenum, phase, betidx, name, style, betact, amt, blind, balance, pot]+ list(comm_cards + list(hole_cards)
     #             (0),     (1),     (2),   (3),    (4),  (5),   (6),    (7), (8),    (9),   (10) - (11) -23)   
     
-    # Capture vs Random Info:
-    
-    #game_id_mask = np.genfromtxt('./log/agent_log20180201.txt', delimiter = ',', usecols = [0,2])
-    #game_id_mask = [game_id_mask[i,0] for i in range(len(game_id_mask)) if game_id_mask[i,1] == 4]
-    #game_id_mask = [i for i in range(len(data)) if data[i,0] in game_id_mask]
-    
-    # Delete pre-flop
-    #del_pf_mask = [i for i in range(len(data)) if data[i, 1] == 0]
-    #data = np.delete(data, del_pf_mask, 0) 
-    #target = np.delete(target, del_pf_mask, 0) 
-    
+    # Mask for Specific Game Id Info:
+    '''
+    game_id_mask = np.genfromtxt('./log/agent_log20180222.tar.gz', delimiter = ',', usecols = [0,2])
+    game_id_mask = [game_id_mask[i,0] for i in range(len(game_id_mask)) if game_id_mask[i,1] == 4]
+    game_id_mask = [i for i in range(len(data)) if data[i,0] in game_id_mask]
+    '''
+
+    # Delete Blind phase:
+    '''
+    del_pf_mask = [i for i in range(len(data)) if data[i, 1] == 0]
+    data = np.delete(data, del_pf_mask, 0) 
+    target = np.delete(target, del_pf_mask, 0) 
+    '''
+
     # Capture useful information
-    data_mask = [[0,2, 3] + range(7, 25), [0,2, 3] + range(7, 12)] 
+
+    data_mask = [[2, 3] + range(7, 25), [0,2, 3] + range(7, 12)] 
     target_mask = 5
     
     # Load data
+
     data = np.genfromtxt(path, delimiter = ',', usecols = data_mask[mask])
     act = np.genfromtxt(path, delimiter = ',', usecols = 6, dtype = str)
     target = np.genfromtxt(path, delimiter = ',', usecols = target_mask, dtype = np.int)
     
-    #data = data[game_id_mask, :]
-    #target = target[ game_id_mask]
-    #act = act[game_id_mask]
-    data = np.delete(data, 0, 1)
+    # using data with game id mask (if available)
     '''
-    # Take minimum of classes and phases
+    data = data[game_id_mask, :]
+    target = target[ game_id_mask]
+    act = act[game_id_mask]
+    '''
+
+    # Delete gamem id information after use
+
+    data = np.delete(data, 0, 1)
+
+    '''
+    # Take minimum of classes and phases (if necessary)
     group_mask = {}
     min_to_take = []
     for g in range(1, 9): 
@@ -69,21 +83,30 @@ def load_dataset(path, mask):
     for g in range(2, 9):
          total_mask = total_mask + group_mask[g][1][0:min_take] + group_mask[g][2][0:min_take] + group_mask[g][3][0:min_take] + group_mask[g][4][0:min_take]
     '''
+
+    # Mask for certain types of playing styles
+
+    '''
     total_mask = [i for i in range(len(target)) if target[i] in [1, 2, 3 , 5]]
+
     # Filter data with mask
-    data = data[total_mask, :]
-    target = target[total_mask]
-    act = act[total_mask]
-    map_mask2 = [i for i in range(len(target)) if target[i] == 5]
-    target[map_mask2] = 4
-    # Change string to int
+
+    #data = data[total_mask, :]
+    #target = target[total_mask]
+    #act = act[total_mask]
+    #map_mask2 = [i for i in range(len(target)) if target[i] == 5]
+    #target[map_mask2] = 4
+    '''
+
+    # Map string to int
+
     act_map = {'f':0, 'c':1, 'k':2, 'b':3, 'r':4}
     for i in range(len(act)):
         act[i] = act_map[act[i]]
     data = np.insert(data, 0, act, axis = 1)
     
-    # Adjust non-fold balance
-    # If anything needs to be added or subtracted
+    # Adjust non-fold balance and turn raw histories to meaningful ratios
+
     nf_mask = [i for i in range(len(data)) if data[i, 0] != 0]
     data[nf_mask,5]  = np.add(data[nf_mask,5], data[nf_mask,3])
     data[nf_mask,5]  = np.divide(data[nf_mask,3], data[nf_mask,5])
@@ -92,28 +115,24 @@ def load_dataset(path, mask):
     data[:,3] = np.divide(data[:,3], data[:,4])
     target = np.subtract(target, 1)
     
-    # Extend categorical variables
+    # Extend phase variable to 4 indicator variables
+
     phase_mat = np.zeros((len(data), 4))
-    act_mat = np.zeros((len(data), 5))
     for i in range(len(phase_mat)):
         idx = int(data[i, 1]-1)
         phase_mat[i,idx] = 1
-        idx = int(data[i, 0])
-        act_mat[i, idx] = 1
     
     data = np.delete(data, 1, 1)
-    #data = np.delete(data, 0, 1)
-    #data = np.concatenate((act_mat, phase_mat, data), axis = 1)
     data = np.concatenate((phase_mat, data), axis = 1)
     
     print('Shape of data: {}, shape of target: {}'.format(np.shape(data), np.shape(target)))
     # Type 0:
     # Selcted attributes: betact, phase, betidx, blind-r, blind, bal-r,   pot-r + list(comm_cards + list(hole_cards)
-    #                     (0-2),  (3-5), (6),    (7),     (8),   (9),     (10),   (11) - (20)
+    #                     (0)   , (1-4), (5)   , (6)    , (7)  , (8)  ,   (9)   + (10-23)
     return data, target    
   
+#=================================================================== Load Poker Dataset ===================================================================
 
-# Global Parameters:
 class PokerDataset(Dataset):
 
     def __init__(self, txt_filepath, mask):
@@ -125,12 +144,12 @@ class PokerDataset(Dataset):
     def __inout__(self):
         return self.data.shape[1], len(set(self.target))
 
-train_set0 = PokerDataset('./log/tourney_log20180207.txt.gz', mask = 0)
-test_set0 = PokerDataset('./log/tourney_log20180208.txt.gz', mask = 0)
+train_set0 = PokerDataset('./final/log/tourney_log20180222.txt.gz', mask = 0)
+test_set0 = PokerDataset('./final/log/tourney_log20180222_10k.txt.gz', mask = 0)
 train_loader0 = DataLoader(train_set0, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 test_loader0 = DataLoader(test_set0, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
 
-# Network Architecture of different configuration:
+#================================================================== Network Architecture ==================================================================
 
 class BlueNet_all6a(nn.Module):
 
@@ -245,12 +264,13 @@ class BlueNet_all7(nn.Module):
         out_x = self.softmax(self.l8(self.l7(self.l6(self.l5(self.l4(fc1))))))
         return out_x
 
-# Model Selection
-#models_sel= [BlueNet_all6a(), BlueNet_all4a(), BlueNet_all2a()]
+#===================================================================== Model Selection =====================================================================
+
 num_in, num_out = train_set0.__inout__()
 models_sel= [BlueNet_all7(num_in, num_out), BlueNet_all6a(num_in, num_out), BlueNet_all6b(num_in, num_out), BlueNet_all4a(num_in, num_out), BlueNet_all4b(num_in, num_out), BlueNet_all2a(num_in, num_out)]
 best_model = 0
 best_acc = 0
+
 # Visualization of training curve
 training_curve = []
 plt.figure
@@ -258,7 +278,8 @@ plt.xlabel('epoch')
 plt.ylabel('Accuract Rate')
 plt.title('Growth of Accuracy Rate with different Network Models')
 
-# Train loop
+#========================================================================= Training ========================================================================
+
 def train(epoch, best_acc):
     scheduler.step()
     model.train()
@@ -302,7 +323,8 @@ def train(epoch, best_acc):
     else:
         return 0
     
-# define prediction
+#======================================================================== Prediction =======================================================================
+
 
 def prediction():
     best_model.eval()
@@ -321,6 +343,9 @@ def prediction():
         prediction_list.append(predict)
         label_list.append(y)
     return np.concatenate(prediction_list), np.concatenate(label_list)
+
+#======================================================================= Main Program ======================================================================
+
 
 for model in models_sel:
 
@@ -347,7 +372,7 @@ curve_name = ['7', '6a', '6b', '4a', '4b', '2a']
 for i in range(len(training_curve)):
     plt.plot(range(EPOCHS), training_curve[i], label = 'Model{}'.format(curve_name[i]))
 plt.legend()
-plt.savefig('./result/accuracy_growth.png')
+plt.savefig('./result/simu_all.png')
 #plt.show()
 pred_result = prediction()
 style_list = ['Aggressive', 'Conservative' ,'High-hater', 'All-in']
@@ -357,4 +382,5 @@ margin_sum = np.sum(confumat, axis = 0)
 confumat = np.append(confumat, [margin_sum], axis = 0)
 confumat = np.divide(confumat.astype(np.float), margin_sum.astype(np.float))
 print('Confusion matrix of style prediction')
-print(pd.DataFrame(confumat, index = row_list, columns=style_list))
+#print(pd.DataFrame(confumat, index = row_list, columns=style_list))
+print(pd.DataFrame(confumat))
