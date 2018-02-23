@@ -1,0 +1,142 @@
+Shape of data: (553986, 24), shape of target: (553986,)
+Shape of data: (375754, 24), shape of target: (375754,)
+Test_network2.py:245: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  out_x = self.softmax(self.l8(self.l7(self.l6(self.l5(self.l4(fc1))))))
+Train Epoch: 0 [0/553986 (0%)]  Accuracy Rate: 0.099121
+Train Epoch: 1 [0/553986 (0%)]  Accuracy Rate: 0.443359
+Train Epoch: 2 [0/553986 (0%)]  Accuracy Rate: 0.439941
+Train Epoch: 3 [0/553986 (0%)]  Accuracy Rate: 0.430664
+Train Epoch: 4 [0/553986 (0%)]  Accuracy Rate: 0.440918
+Train Epoch: 5 [0/553986 (0%)]  Accuracy Rate: 0.441895
+Train Epoch: 6 [0/553986 (0%)]  Accuracy Rate: 0.421387
+Train Epoch: 7 [0/553986 (0%)]  Accuracy Rate: 0.425781
+Train Epoch: 8 [0/553986 (0%)]  Accuracy Rate: 0.432617
+Train Epoch: 9 [0/553986 (0%)]  Accuracy Rate: 0.426270
+Train Epoch: 10 [0/553986 (0%)] Accuracy Rate: 0.440918
+Train Epoch: 11 [0/553986 (0%)] Accuracy Rate: 0.443848
+Train Epoch: 12 [0/553986 (0%)] Accuracy Rate: 0.438477
+Train Epoch: 13 [0/553986 (0%)] Accuracy Rate: 0.445312
+Train Epoch: 14 [0/553986 (0%)] Accuracy Rate: 0.424316
+Train Epoch: 15 [0/553986 (0%)] Accuracy Rate: 0.439453
+Train Epoch: 16 [0/553986 (0%)] Accuracy Rate: 0.458008
+Train Epoch: 17 [0/553986 (0%)] Accuracy Rate: 0.443359
+Train Epoch: 18 [0/553986 (0%)] Accuracy Rate: 0.437012
+Train Epoch: 19 [0/553986 (0%)] Accuracy Rate: 0.411133
+Test_network2.py:152: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  out_x = self.softmax(self.l7(self.relu(self.l6(self.relu(self.l5(self.relu(self.l4(fc1))))))))
+Train Epoch: 0 [0/553986 (0%)]  Accuracy Rate: 0.226562
+Train Epoch: 1 [0/553986 (0%)]  Accuracy Rate: 0.588379
+Train Epoch: 2 [0/553986 (0%)]  Accuracy Rate: 0.626953
+Train Epoch: 3 [0/553986 (0%)]  Accuracy Rate: 0.631836
+Train Epoch: 4 [0/553986 (0%)]  Accuracy Rate: 0.538086
+Train Epoch: 5 [0/553986 (0%)]  Accuracy Rate: 0.545898
+Train Epoch: 6 [0/553986 (0%)]  Accuracy Rate: 0.595703
+Train Epoch: 7 [0/553986 (0%)]  Accuracy Rate: 0.623535
+Train Epoch: 8 [0/553986 (0%)]  Accuracy Rate: 0.648438
+Train Epoch: 9 [0/553986 (0%)]  Accuracy Rate: 0.655762
+Train Epoch: 10 [0/553986 (0%)] Accuracy Rate: 0.661621
+Train Epoch: 11 [0/553986 (0%)] Accuracy Rate: 0.669434
+Train Epoch: 12 [0/553986 (0%)] Accuracy Rate: 0.653320
+Train Epoch: 13 [0/553986 (0%)] Accuracy Rate: 0.652344
+Train Epoch: 14 [0/553986 (0%)] Accuracy Rate: 0.656250
+Train Epoch: 15 [0/553986 (0%)] Accuracy Rate: 0.647461
+Train Epoch: 16 [0/553986 (0%)] Accuracy Rate: 0.679199
+Train Epoch: 17 [0/553986 (0%)] Accuracy Rate: 0.666504
+Train Epoch: 18 [0/553986 (0%)] Accuracy Rate: 0.660645
+Train Epoch: 19 [0/553986 (0%)] Accuracy Rate: 0.656738
+Test_network2.py:172: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  out_x = self.softmax(self.l7(self.relu(self.l6(self.relu(self.l5(self.relu(self.l4(fc1))))))))
+Train Epoch: 0 [0/553986 (0%)]  Accuracy Rate: 0.222168
+Train Epoch: 1 [0/553986 (0%)]  Accuracy Rate: 0.598633
+Train Epoch: 2 [0/553986 (0%)]  Accuracy Rate: 0.604980
+Train Epoch: 3 [0/553986 (0%)]  Accuracy Rate: 0.642090
+Train Epoch: 4 [0/553986 (0%)]  Accuracy Rate: 0.638672
+Train Epoch: 5 [0/553986 (0%)]  Accuracy Rate: 0.420410
+Train Epoch: 6 [0/553986 (0%)]  Accuracy Rate: 0.465332
+Train Epoch: 7 [0/553986 (0%)]  Accuracy Rate: 0.460449
+Train Epoch: 8 [0/553986 (0%)]  Accuracy Rate: 0.470215
+Train Epoch: 9 [0/553986 (0%)]  Accuracy Rate: 0.464355
+Train Epoch: 10 [0/553986 (0%)] Accuracy Rate: 0.482422
+Train Epoch: 11 [0/553986 (0%)] Accuracy Rate: 0.471680
+Train Epoch: 12 [0/553986 (0%)] Accuracy Rate: 0.482910
+Train Epoch: 13 [0/553986 (0%)] Accuracy Rate: 0.440918
+Train Epoch: 14 [0/553986 (0%)] Accuracy Rate: 0.483887
+Train Epoch: 15 [0/553986 (0%)] Accuracy Rate: 0.459961
+Train Epoch: 16 [0/553986 (0%)] Accuracy Rate: 0.459473
+Train Epoch: 17 [0/553986 (0%)] Accuracy Rate: 0.458984
+Train Epoch: 18 [0/553986 (0%)] Accuracy Rate: 0.472656
+Train Epoch: 19 [0/553986 (0%)] Accuracy Rate: 0.470215
+Test_network2.py:190: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  out_x = self.softmax(self.l5(self.relu(self.l4(self.relu((self.l3(fc1)))))))
+Train Epoch: 0 [0/553986 (0%)]  Accuracy Rate: 0.258301
+Train Epoch: 1 [0/553986 (0%)]  Accuracy Rate: 0.600586
+Train Epoch: 2 [0/553986 (0%)]  Accuracy Rate: 0.608398
+Train Epoch: 3 [0/553986 (0%)]  Accuracy Rate: 0.575684
+Train Epoch: 4 [0/553986 (0%)]  Accuracy Rate: 0.497559
+Train Epoch: 5 [0/553986 (0%)]  Accuracy Rate: 0.635742
+Train Epoch: 6 [0/553986 (0%)]  Accuracy Rate: 0.634277
+Train Epoch: 7 [0/553986 (0%)]  Accuracy Rate: 0.617676
+Train Epoch: 8 [0/553986 (0%)]  Accuracy Rate: 0.643555
+Train Epoch: 9 [0/553986 (0%)]  Accuracy Rate: 0.634277
+Train Epoch: 10 [0/553986 (0%)] Accuracy Rate: 0.635742
+Train Epoch: 11 [0/553986 (0%)] Accuracy Rate: 0.658203
+Train Epoch: 12 [0/553986 (0%)] Accuracy Rate: 0.645508
+Train Epoch: 13 [0/553986 (0%)] Accuracy Rate: 0.634277
+Train Epoch: 14 [0/553986 (0%)] Accuracy Rate: 0.637207
+Train Epoch: 15 [0/553986 (0%)] Accuracy Rate: 0.646973
+Train Epoch: 16 [0/553986 (0%)] Accuracy Rate: 0.657715
+Train Epoch: 17 [0/553986 (0%)] Accuracy Rate: 0.645508
+Train Epoch: 18 [0/553986 (0%)] Accuracy Rate: 0.638184
+Train Epoch: 19 [0/553986 (0%)] Accuracy Rate: 0.631348
+Test_network2.py:208: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  out_x = self.softmax(self.l5(self.relu(self.l4(self.relu((self.l3(fc1)))))))
+Train Epoch: 0 [0/553986 (0%)]  Accuracy Rate: 0.123047
+Train Epoch: 1 [0/553986 (0%)]  Accuracy Rate: 0.503906
+Train Epoch: 2 [0/553986 (0%)]  Accuracy Rate: 0.582031
+Train Epoch: 3 [0/553986 (0%)]  Accuracy Rate: 0.591309
+Train Epoch: 4 [0/553986 (0%)]  Accuracy Rate: 0.558594
+Train Epoch: 5 [0/553986 (0%)]  Accuracy Rate: 0.612305
+Train Epoch: 6 [0/553986 (0%)]  Accuracy Rate: 0.623535
+Train Epoch: 7 [0/553986 (0%)]  Accuracy Rate: 0.601074
+Train Epoch: 8 [0/553986 (0%)]  Accuracy Rate: 0.612793
+Train Epoch: 9 [0/553986 (0%)]  Accuracy Rate: 0.592773
+Train Epoch: 10 [0/553986 (0%)] Accuracy Rate: 0.618164
+Train Epoch: 11 [0/553986 (0%)] Accuracy Rate: 0.618164
+Train Epoch: 12 [0/553986 (0%)] Accuracy Rate: 0.608887
+Train Epoch: 13 [0/553986 (0%)] Accuracy Rate: 0.624023
+Train Epoch: 14 [0/553986 (0%)] Accuracy Rate: 0.614746
+Train Epoch: 15 [0/553986 (0%)] Accuracy Rate: 0.626465
+Train Epoch: 16 [0/553986 (0%)] Accuracy Rate: 0.623047
+Train Epoch: 17 [0/553986 (0%)] Accuracy Rate: 0.596191
+Train Epoch: 18 [0/553986 (0%)] Accuracy Rate: 0.601562
+Train Epoch: 19 [0/553986 (0%)] Accuracy Rate: 0.607422
+Test_network2.py:224: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  out_x = self.softmax(self.l3(self.relu((self.l2(fc1)))))
+Train Epoch: 0 [0/553986 (0%)]  Accuracy Rate: 0.437012
+Train Epoch: 1 [0/553986 (0%)]  Accuracy Rate: 0.465332
+Train Epoch: 2 [0/553986 (0%)]  Accuracy Rate: 0.483398
+Train Epoch: 3 [0/553986 (0%)]  Accuracy Rate: 0.599121
+Train Epoch: 4 [0/553986 (0%)]  Accuracy Rate: 0.621582
+Train Epoch: 5 [0/553986 (0%)]  Accuracy Rate: 0.577637
+Train Epoch: 6 [0/553986 (0%)]  Accuracy Rate: 0.629395
+Train Epoch: 7 [0/553986 (0%)]  Accuracy Rate: 0.641602
+Train Epoch: 8 [0/553986 (0%)]  Accuracy Rate: 0.630371
+Train Epoch: 9 [0/553986 (0%)]  Accuracy Rate: 0.640137
+Train Epoch: 10 [0/553986 (0%)] Accuracy Rate: 0.644043
+Train Epoch: 11 [0/553986 (0%)] Accuracy Rate: 0.629883
+Train Epoch: 12 [0/553986 (0%)] Accuracy Rate: 0.632812
+Train Epoch: 13 [0/553986 (0%)] Accuracy Rate: 0.631348
+Train Epoch: 14 [0/553986 (0%)] Accuracy Rate: 0.625488
+Train Epoch: 15 [0/553986 (0%)] Accuracy Rate: 0.647461
+Train Epoch: 16 [0/553986 (0%)] Accuracy Rate: 0.637207
+Train Epoch: 17 [0/553986 (0%)] Accuracy Rate: 0.630859
+Train Epoch: 18 [0/553986 (0%)] Accuracy Rate: 0.638672
+Train Epoch: 19 [0/553986 (0%)] Accuracy Rate: 0.650879
+Confusion matrix of style prediction
+              Aggressive  Conservative  High-hater    All-in
+Aggressive      0.592819      0.198954    0.093683  0.135336
+Conservative    0.042340      0.413406    0.018332  0.229214
+High-hater      0.328540      0.276400    0.878072  0.265391
+All-in          0.036301      0.111240    0.009912  0.370059
+sum             1.000000      1.000000    1.000000  1.000000
+
