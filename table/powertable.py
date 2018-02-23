@@ -1,3 +1,7 @@
+# Code      : powertable.py
+# Written by: TANG, Chit Long (Steven)
+# Purpose   : Calculate winning probabilities for 2 hole cards and 5-card poker hand
+
 from functools import reduce
 from itertools import groupby
 from itertools import combinations
