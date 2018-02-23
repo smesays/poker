@@ -1,6 +1,6 @@
 # Code      : analyze_stat.py
-# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
-# Purpose   : Analyze the tournament log to produce style statistics
+# Written by: LIU, Jiun Ee (G)
+# Purpose   : Analyze the agent log to produce style win rates
 
 import numpy as np
 

@@ -45,7 +45,7 @@ def load_dataset(path, mask):
 
     # Capture useful information
 
-    data_mask = [[2, 3] + range(7, 25), [0,2, 3] + range(7, 12)] 
+    data_mask = [[2, 3] + range(7, 21), [0,2, 3] + range(7, 12)] 
     target_mask = 5
     
     # Load data
@@ -63,7 +63,7 @@ def load_dataset(path, mask):
 
     # Delete gamem id information after use
 
-    data = np.delete(data, 0, 1)
+    #data = np.delete(data, 0, 1)
 
     '''
     # Take minimum of classes and phases (if necessary)
@@ -86,17 +86,19 @@ def load_dataset(path, mask):
 
     # Mask for certain types of playing styles
 
-    '''
-    total_mask = [i for i in range(len(target)) if target[i] in [1, 2, 3 , 5]]
+    total_mask = [i for i in range(len(target)) if target[i] in [1, 2, 3 , 8]]
 
     # Filter data with mask
 
-    #data = data[total_mask, :]
-    #target = target[total_mask]
-    #act = act[total_mask]
+    data = data[total_mask, :]
+    target = target[total_mask]
+    act = act[total_mask]
     #map_mask2 = [i for i in range(len(target)) if target[i] == 5]
+    #map_mask3 = [i for i in range(len(target)) if target[i] == 7]
+    map_mask4 = [i for i in range(len(target)) if target[i] == 8]
     #target[map_mask2] = 4
-    '''
+    #target[map_mask3] = 5
+    target[map_mask4] = 4
 
     # Map string to int
 
@@ -372,7 +374,7 @@ curve_name = ['7', '6a', '6b', '4a', '4b', '2a']
 for i in range(len(training_curve)):
     plt.plot(range(EPOCHS), training_curve[i], label = 'Model{}'.format(curve_name[i]))
 plt.legend()
-plt.savefig('./result/simu_all.png')
+plt.savefig('./result/simu_4_nohole.png')
 #plt.show()
 pred_result = prediction()
 style_list = ['Aggressive', 'Conservative' ,'High-hater', 'All-in']
