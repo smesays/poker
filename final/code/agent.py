@@ -1,5 +1,5 @@
 # Code      : /code/agent.py
-# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
+# Written by: LIU, Jiun Ee (G)
 # Purpose   : This class is used to represent the players in the Texas Hold'em game
 # Notes     : There are 8 styles of players implemented within this class. Each style has its own method, and the 
 #               method dictates how that style of player responds to the game environment, what action to take,
