@@ -1,5 +1,5 @@
 # Code      : /code/hand.py
-# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
+# Written by: LIU, Jiun Ee (G)
 # Purpose   : This class is used to represent a 5-, 6-, or 7-card hand. 
 # Notes     : The hand_rank and hand_name attributes represent the best 5-card poker hand from the hand object
 
