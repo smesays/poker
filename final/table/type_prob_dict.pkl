@@ -1,0 +1,39 @@
+ccollections
+defaultdict
+p0
+(c__builtin__
+float
+p1
+tp2
+Rp3
+S'Four-of-a-Kind'
+p4
+F0.9997599039615847
+sS'Three-of-a-Kind'
+p5
+F0.9788715486194478
+sS'Royal Flush'
+p6
+F0.9999984609228306
+sS'Straight'
+p7
+F0.9960753532182104
+sS'Flush'
+p8
+F0.9980345984547665
+sS'Two Pairs'
+p9
+F0.9524609843937575
+sS'Straight Flush'
+p10
+F0.999986148305476
+sS'High Card'
+p11
+F0.49882260596546313
+sS'One Pair'
+p12
+F0.5774309723889556
+sS'Full House'
+p13
+F0.9985594237695078
+s.
