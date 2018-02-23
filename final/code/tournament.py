@@ -1,5 +1,5 @@
 # Code      : /code/tournament.py
-# Written by: LIU, Jiun Ee (G); TANG, Chit Long (Steven)
+# Written by: LIU, Jiun Ee (G)
 # Purpose   : This is the main program that simulate the entire Heads-up No-limit Texas Hold'em tournament
 # Usage     : For game simulation and generate a game log for analysis, set SIMULATE = 1
 #             For human vs bot tournament, set SIMULATE = 0
