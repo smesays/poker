@@ -1,5 +1,11 @@
-execfile('../g/card.py') 
-execfile('../g/hand.py') 
+# Code      : all_poker_hands.py
+# Written by: LIU, Jiun Ee (G)
+# Purpose   : DFS search of all possible 5-card poker hands, and categorize them to unique 5-card hand names
+# Notes     : Rely on hand.py to return the rank of the poker hand
+#             Resulting combinations and their corresponding hand ranks enable us to calculate winning probabilities
+
+execfile('../code/card.py') 
+execfile('../code/hand.py') 
 from collections import defaultdict 
 import pickle 
 
@@ -26,10 +32,10 @@ for a in range(start,end+1):
                                     rank_cnt[ranktxt] += 1
 
 # write dict to file
-output = open('rank_count.pkl', 'wb') 
+output = open('rank_count_dict.pkl', 'wb') 
 pickle.dump(rank_cnt, output) 
 output.close()
 
-output = open('type_count.pkl', 'wb')
+output = open('type_count_dict.pkl', 'wb')
 pickle.dump(type_cnt, output)
 output.close()
